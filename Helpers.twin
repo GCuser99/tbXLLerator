@@ -1,0 +1,500 @@
+Module Helpers
+    Option Explicit
+    
+    Public Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
+    Public Declare PtrSafe Function GlobalAlloc Lib "kernel32" (ByVal uFlags As GMEM, ByVal dwBytes As LongPtr) As LongPtr
+    Public Declare PtrSafe Function GlobalFree Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+    
+    Public Declare PtrSafe Function MessageBox Lib "user32" Alias "MessageBoxA" (ByVal hWnd As LongPtr, ByVal lpText As String, ByVal lpCaption As String, ByVal uType As Long) As Long
+    'MessageBox 0, "xlAutoRemove called - unregistering UDFs", "XLL Diagnostic", 0
+    
+    Public Enum GMEM
+        GMEM_FIXED = &H0000
+        GMEM_MOVEABLE = &H0002
+        GMEM_NOCOMPACT = &H0010
+        GMEM_NODISCARD = &H0020
+        GMEM_ZEROINIT = &H0040
+        GMEM_MODIFY = &H0080
+        GMEM_DISCARDABLE = &H0100
+        GMEM_NOT_BANKED = &H1000
+        GMEM_SHARE = &H2000
+        GMEM_DDESHARE = &H2000
+        GMEM_NOTIFY = &H4000
+        GMEM_LOWER = &H1000
+        GMEM_VALID_FLAGS = &H7F72
+        GMEM_INVALID_HANDLE = &H8000&
+        GHND = GMEM_MOVEABLE Or GMEM_ZEROINIT
+        GPTR = GMEM_FIXED Or GMEM_ZEROINIT
+        GMEM_DISCARDED = &H4000
+        GMEM_LOCKCOUNT = &H00FF
+    End Enum
+    
+    '===========================================================
+    ' Unified argument binding for XLOPER12-based UDFs
+    '===========================================================
+    
+    '-----------------------------
+    ' Target type enum
+    '-----------------------------
+    Public Enum BindType
+        btNumber = 0
+        btString = 1
+        btBool = 2
+        btDate = 3
+        btArray = 4
+        btSingleCellRef = 5
+        btValue = 6
+    End Enum
+    
+    '===========================================================
+    ' Unified dispatcher: Bind
+    '===========================================================
+    Public Function Bind( _
+        ByRef pIn As XLOPER12, _
+        ByVal target As BindType, _
+        ByRef outValue As Variant, _
+        ByRef xResult As XLOPER12) As Boolean
+
+        Dim d As Double
+        Dim s As String
+        Dim b As Boolean
+        Dim dt As Double
+        Dim arr() As Variant
+        Dim r As XLREF12
+        Dim v As Variant
+
+        Select Case target
+            Case btNumber
+                If CoerceToNumber(pIn, d) Then
+                    outValue = d
+                    Bind = True
+                Else
+                    SetErrorResult xResult
+                    Bind = False
+                End If
+            Case btString
+                If CoerceToString(pIn, s) Then
+                    outValue = s
+                    Bind = True
+                Else
+                    SetErrorResult xResult
+                    Bind = False
+                End If
+            Case btBool
+                If CoerceToBool(pIn, b) Then
+                    outValue = b
+                    Bind = True
+                Else
+                    SetErrorResult xResult
+                    Bind = False
+                End If
+            Case btDate
+                If CoerceToDate(pIn, dt) Then
+                    outValue = dt
+                    Bind = True
+                Else
+                    SetErrorResult xResult
+                    Bind = False
+                End If
+            Case btArray
+                If CoerceToArray(pIn, arr) Then
+                    outValue = arr
+                    Bind = True
+                Else
+                    SetErrorResult xResult
+                    Bind = False
+                End If
+            Case btSingleCellRef
+                ' This is a workaround - XLREF12 round-tripping through Variant seems broken and needs more investigation
+                If CoerceToSingleCellRef(pIn, r) Then
+                    Dim rc(1) As Variant
+                    rc(0) = r.rwFirst
+                    rc(1) = r.colFirst
+                    outValue = rc
+                    Bind = True
+                Else
+                    SetErrorResult xResult
+                    Bind = False
+                End If
+            Case btValue
+                Dim arrV() As Variant
+                If CoerceToArray(pIn, arrV) Then
+                    outValue = arrV(0, 0)
+                    Bind = True
+                Else
+                    SetErrorResult xResult
+                    Bind = False
+                End If
+            Case Else
+                SetErrorResult xResult
+                Bind = False
+        End Select
+    End Function
+
+    ' Error helper function
+    Public Sub SetErrorResult(ByRef xResult As XLOPER12)
+        xResult.xltype = xltypeErr
+        CopyMemory xResult.val(0), xlerrValue, LenB(xlerrValue)
+    End Sub
+    
+    '--------------------------------------------------------------------------
+    ' Extension to the API
+    '--------------------------------------------------------------------------
+    ' This functiion converts in input variant array to an XLOPER12 structure
+    Public Function GetXLMulti12(ByRef arr() As Variant) As XLOPER12
+        /*
+        IMPORTANT - need to free up memory after using this as in this example:
+    
+        Dim xMulti As XLOPER12
+        xMulti = GetXLMulti12(arrV)
+
+        Dim args(0) As XLOPER12
+        Dim xOut(0) As XLOPER12
+        Dim xFree(0) As XLOPER12
+
+        args(0) = xMulti
+        Excel12v xlfSum, xOut(0), 1, args
+
+        ' Free the element array we allocated
+        FreeXLMulti12 xMulti
+
+        ' Free any Excel-allocated result memory
+        xFree(0) = xOut(0)
+        Excel12v xlFree, ByVal vbNullPtr, 1, xFree
+        */
+        Dim rows As Long = UBound(arr, 1) + 1
+        Dim cols As Long = UBound(arr, 2) + 1
+        Dim count As Long = rows * cols
+    
+        ' Allocate memory for the element array
+        Dim elem As XLOPER12
+        Dim elemSize As Long = LenB(elem)
+        Dim lpArray As LongPtr = GlobalAlloc(GPTR, count * elemSize)
+    
+        If lpArray = 0 Then Exit Function
+    
+        Dim r As Long, c As Long, i As Long
+        For r = 0 To rows - 1
+            For c = 0 To cols - 1
+                i = r * cols + c
+                Dim xElem As XLOPER12
+                xElem = GetXLVariant12(arr(r, c))
+                CopyMemory ByVal lpArray + (i * elemSize), xElem, elemSize
+            Next c
+        Next r
+        
+        ' Build the xltypeMulti XLOPER12
+        Dim pVal As LongPtr
+        GetXLMulti12.xltype = xltypeMulti
+        pVal = VarPtr(GetXLMulti12.val(0))
+        CopyMemory ByVal pVal, lpArray, LenB(Of LongPtr)
+        CopyMemory ByVal pVal + LenB(Of LongPtr), rows, 4
+        CopyMemory ByVal pVal + LenB(Of LongPtr) + 4, cols, 4
+    End Function
+    
+    Public Function GetXLVariant12(ByVal v As Variant) As XLOPER12
+        Select Case VarType(v)
+            Case vbDouble
+                GetXLVariant12 = GetXLNum12(CDbl(v))
+            Case vbLong, vbInteger
+                GetXLVariant12 = GetXLInt12(CLng(v))
+            Case vbBoolean
+                GetXLVariant12 = GetXLBool12(CBool(v))
+            Case vbString
+                GetXLVariant12 = GetXLString12(CStr(v))
+            Case vbError
+                GetXLVariant12 = GetXLErr12(CLng(v))
+            Case Else
+                GetXLVariant12.xltype = xltypeNil
+        End Select
+    End Function
+    
+    Public Sub FreeXLMulti12(ByRef xMulti As XLOPER12)
+        If xMulti.xltype <> xltypeMulti Then Exit Sub
+        Dim pVal As LongPtr
+        Dim lpArray As LongPtr
+        pVal = VarPtr(xMulti.val(0))
+        CopyMemory lpArray, ByVal pVal, LenB(Of LongPtr)
+        GlobalFree lpArray
+        xMulti.xltype = xltypeNil
+    End Sub
+    
+    ' Allocates a heap XLOPER12 with xlbitDLLFree set for thread-safe UDF return
+    ' Returns 0 if allocation fails
+    ' Caller must NOT free - Excel calls xlAutoFree12 when done
+    Public Function AllocXLOPER12Result(ByRef x As XLOPER12) As LongPtr
+        Dim pResult As LongPtr
+        pResult = GlobalAlloc(GPTR, LenB(Of XLOPER12))
+        If pResult = 0 Then Return 0
+        x.xltype = x.xltype Or xlbitDLLFree
+        CopyMemory ByVal pResult, x, LenB(Of XLOPER12)
+        Return pResult
+    End Function
+
+    '===========================================================
+    ' Core coercion helpers (XLOPER12 -> typed)
+    '===========================================================
+
+    Private Function CoerceToBool( _
+        ByRef pIn As XLOPER12, _
+        ByRef outBool As Boolean) As Boolean
+
+        Dim xlt(0) As XLOPER12
+        Dim xle(1) As XLOPER12
+        Dim rc As Long
+
+        Select Case pIn.xltype
+            Case xltypeBool
+                outBool = Xloper12BoolValue(pIn)
+                CoerceToBool = True
+                Exit Function
+            Case xltypeNum
+                outBool = (Xloper12NumValue(pIn) <> 0)
+                CoerceToBool = True
+                Exit Function
+            Case xltypeInt
+                outBool = (Xloper12IntValue(pIn) <> 0)
+                CoerceToBool = True
+                Exit Function
+            Case xltypeStr, xltypeSRef, xltypeRef, xltypeMulti
+                xle(0) = pIn
+                xle(1) = GetXLInt12(xltypeNum)
+
+                rc = Excel12v(xlCoerce, xlt(0), 2, xle)
+                If rc = 0 Then
+                    outBool = (Xloper12NumValue(xlt(0)) <> 0)
+                    Excel12v xlFree, ByVal vbNullPtr, 1, xlt
+                    CoerceToBool = True
+                    Exit Function
+                End If
+
+                Excel12v xlFree, ByVal vbNullPtr, 1, xlt
+                CoerceToBool = False
+                Exit Function
+            Case Else
+                CoerceToBool = False
+                Exit Function
+        End Select
+    End Function
+
+    Private Function CoerceToNumber( _
+        ByRef pIn As XLOPER12, _
+        ByRef outNum As Double) As Boolean
+
+        Dim xlt(0) As XLOPER12
+        Dim xle(1) As XLOPER12
+        Dim rc As Long
+
+        Select Case pIn.xltype
+            Case xltypeNum
+                outNum = Xloper12NumValue(pIn)
+                CoerceToNumber = True
+                Exit Function
+            Case xltypeInt
+                outNum = Xloper12IntValue(pIn)
+                CoerceToNumber = True
+                Exit Function
+            Case xltypeBool
+                outNum = IIf(Xloper12BoolValue(pIn), 1#, 0#)
+                CoerceToNumber = True
+                Exit Function
+            Case xltypeStr, xltypeSRef, xltypeRef, xltypeMulti
+                xle(0) = pIn
+                xle(1) = GetXLInt12(xltypeNum)
+
+                rc = Excel12v(xlCoerce, xlt(0), 2, xle)
+                If rc = 0 Then
+                    outNum = Xloper12NumValue(xlt(0))
+                    Excel12v xlFree, ByVal vbNullPtr, 1, xlt
+                    CoerceToNumber = True
+                    Exit Function
+                End If
+
+                Excel12v xlFree, ByVal vbNullPtr, 1, xlt
+                CoerceToNumber = False
+                Exit Function
+            Case Else
+                CoerceToNumber = False
+                Exit Function
+        End Select
+    End Function
+
+    Private Function CoerceToString( _
+        ByRef pIn As XLOPER12, _
+        ByRef outStr As String) As Boolean
+
+        Dim xlt(0) As XLOPER12
+        Dim xle(1) As XLOPER12
+        Dim rc As Long
+
+        Select Case pIn.xltype
+            Case xltypeStr
+                outStr = Xloper12StrValue(pIn)
+                CoerceToString = True
+                Exit Function
+            Case xltypeNum
+                outStr = CStr(Xloper12NumValue(pIn))
+                CoerceToString = True
+                Exit Function
+            Case xltypeInt
+                outStr = CStr(Xloper12IntValue(pIn))
+                CoerceToString = True
+                Exit Function
+            Case xltypeBool
+                outStr = IIf(Xloper12BoolValue(pIn), "TRUE", "FALSE")
+                CoerceToString = True
+                Exit Function
+            Case xltypeSRef, xltypeRef, xltypeMulti
+                xle(0) = pIn
+                xle(1) = GetXLInt12(xltypeStr)
+
+                rc = Excel12v(xlCoerce, xlt(0), 2, xle)
+                If rc = 0 Then
+                    outStr = Xloper12StrValue(xlt(0))
+                    Excel12v xlFree, ByVal vbNullPtr, 1, xlt
+                    CoerceToString = True
+                    Exit Function
+                End If
+
+                Excel12v xlFree, ByVal vbNullPtr, 1, xlt
+                CoerceToString = False
+                Exit Function
+            Case Else
+                CoerceToString = False
+                Exit Function
+        End Select
+    End Function
+
+    Private Function CoerceToSingleCellRef( _
+        ByRef pIn As XLOPER12, _
+        ByRef outRef As XLREF12) As Boolean
+
+        Dim xlt(0) As XLOPER12
+        Dim xle(1) As XLOPER12
+        Dim rc As Long
+        Dim sref As XLREF12
+
+        Select Case pIn.xltype
+            Case xltypeSRef
+                ' xltypeSRef val union layout:
+                ' offset 0: 4 bytes (WORD count always=1, plus 2 bytes padding)
+                ' offset 4: XLREF12 (rwFirst, rwLast, colFirst, colLast)
+                CopyMemory sref, ByVal VarPtr(pIn.val(0)) + 4, LenB(sref)
+                If sref.rwFirst = sref.rwLast And _
+                   sref.colFirst = sref.colLast Then
+                    outRef = sref
+                    CoerceToSingleCellRef = True
+                    Exit Function
+                End If
+                CoerceToSingleCellRef = False
+                Exit Function
+            Case xltypeRef
+                CoerceToSingleCellRef = False
+                Exit Function
+            Case xltypeStr
+                CoerceToSingleCellRef = False
+                Exit Function
+            Case Else
+                CoerceToSingleCellRef = False
+                Exit Function
+        End Select
+    End Function
+
+    Private Function CoerceToDate( _
+        ByRef pIn As XLOPER12, _
+        ByRef outDate As Double) As Boolean
+
+        Dim num As Double
+
+        If Not CoerceToNumber(pIn, num) Then
+            CoerceToDate = False
+            Exit Function
+        End If
+
+        ' Optional: Excel date range sanity check
+        If num < 0# Or num > 2958465# Then
+            CoerceToDate = False
+            Exit Function
+        End If
+
+        outDate = num
+        CoerceToDate = True
+    End Function
+    
+    Private Function CoerceToArray( _
+        ByRef pIn As XLOPER12, _
+        ByRef outArr() As Variant) As Boolean
+
+        Dim xArgs(1) As XLOPER12
+        Dim xMulti(0) As XLOPER12
+        Dim xFree(0) As XLOPER12
+        Dim outRows As Long, outCols As Long
+
+        xArgs(0) = pIn
+        xArgs(1) = GetXLInt12(xltypeMulti)
+
+        If Excel12v(xlCoerce, xMulti(0), 2, xArgs) <> 0 Then
+            CoerceToArray = False
+            Exit Function
+        End If
+
+        Dim pVal As LongPtr
+        Dim lpArray As LongPtr
+        
+        pVal = VarPtr(xMulti(0).val(0))
+        CopyMemory lpArray, ByVal pVal, LenB(Of LongPtr)
+        CopyMemory outRows, ByVal pVal + LenB(Of LongPtr), 4
+        CopyMemory outCols, ByVal pVal + LenB(Of LongPtr) + 4, 4
+
+        ReDim outArr(0 To outRows - 1, 0 To outCols - 1)
+
+        Dim elem As XLOPER12
+        Dim elemSize As Long = LenB(elem)
+        Dim r As Long, c As Long, i As Long
+
+        For r = 0 To outRows - 1
+            For c = 0 To outCols - 1
+                i = r * outCols + c
+                CopyMemory elem, ByVal lpArray + (i * elemSize), elemSize
+                Select Case elem.xltype
+                    Case xltypeNum
+                        outArr(r, c) = Xloper12NumValue(elem)
+                    Case xltypeInt
+                        outArr(r, c) = Xloper12IntValue(elem)
+                    Case xltypeBool
+                        outArr(r, c) = Xloper12BoolValue(elem)
+                    Case xltypeStr
+                        outArr(r, c) = Xloper12StrValue(elem)
+                    Case xltypeErr
+                        outArr(r, c) = XlErrToString(Xloper12ErrValue(elem))
+                        ' Could also use CVErr here - caller can check for VarType vbError and process
+                    Case xltypeNil, xltypeBlank
+                        ' Empty cells coerced in multi-array are typically xltypeNil but xltypeBlank can appear in some edge cases
+                        outArr(r, c) = Empty
+                    Case Else
+                        outArr(r, c) = Empty
+                End Select
+            Next c
+        Next r
+
+        xFree(0) = xMulti(0)
+        Excel12v xlFree, ByVal vbNullPtr, 1, xFree
+
+        CoerceToArray = True
+    End Function
+    
+    Private Function XlErrToString(ByVal errCode As Long) As String
+        Select Case errCode
+            Case xlerrNull:         XlErrToString = "#NULL!"
+            Case xlerrDiv0:         XlErrToString = "#DIV/0!"
+            Case xlerrValue:        XlErrToString = "#VALUE!"
+            Case xlerrRef:          XlErrToString = "#REF!"
+            Case xlerrName:         XlErrToString = "#NAME?"
+            Case xlerrNum:          XlErrToString = "#NUM!"
+            Case xlerrNA:           XlErrToString = "#N/A"
+            Case xlerrGettingData:  XlErrToString = "#GETTING_DATA"
+            Case Else:              XlErrToString = "#UNKNOWN!"
+        End Select
+    End Function
+       
+End Module

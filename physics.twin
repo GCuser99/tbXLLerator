@@ -1,0 +1,416 @@
+Module physics
+
+    Function VirtualSpeed(ByVal power As Double, ByVal Vinit As Double, ByVal Slope As Double, ByVal mass As Double, Optional ByVal DeltaT As Double = 1, Optional ByVal crr As Double = 0.004, Optional ByVal cda As Double = 0.4, Optional ByVal rhoAir As Double = 1#, Optional ByVal LossDT As Double = 0, Optional ByVal VelHeadWind As Double = 0, Optional ByVal WheelCir As Double = 2000, Optional ByVal ModelSpokeDrag As Boolean = False, Optional ByVal ModelBearingLoss As Boolean = False, Optional ByVal ModelWheelInertia As Boolean = False, Optional ByVal ModelDynRollRes As Boolean = False, Optional ByVal SmallAngleApprox As Boolean = False, Optional ByVal SteadyState As Boolean = False, Optional DraftingFactor As Double = 1#) As Variant
+        Dim pi As Double
+        Dim g As Double
+        Dim fw As Double
+        Dim mwheel As Double
+        Dim crv As Double
+        Dim r As Double
+        Dim i As Double
+        Dim cosBeta As Double
+        Dim sinbeta As Double
+        Dim PGrav As Double
+        Dim Proll As Double
+        Dim Pair As Double
+        Dim PdynRoll As Double
+        Dim Pke As Double
+        Dim PWBearing As Double
+        Dim c0 As Double
+        Dim c1 As Double
+        Dim c2 As Double
+        Dim c3 As Double
+    
+        Dim c0ke As Double
+        Dim c1ke As Double
+        Dim c2ke As Double
+    
+        Dim c1bl As Double
+        Dim c2bl As Double
+        Dim c1grav As Double
+        Dim c1roll As Double
+        Dim c1air As Double
+    
+        Dim c2air As Double
+        Dim c2dynroll As Double
+    
+        Dim c3air As Double
+        Dim roots() As Double
+        Dim vel As Double
+        Dim thisvel As Double
+    
+        'Application.Volatile False
+        'LibUDFs.TriggerFastUDFCalculation
+    
+        'pbrake is zero or positive
+        'VelHeadWind is positive for head wind, negative for tail wind
+    
+        pi = 4# * Atn(1#)
+        g = 9.80665 'this is exact grav accel
+        fw = 0#  'incremental drag associated with area of spokes in m^2
+        mwheel = 0
+        crv = 0#
+        c1bl = 0
+        c2bl = 0
+    
+        If SmallAngleApprox Then
+            cosBeta = 1
+            sinbeta = Slope
+        Else
+            cosBeta = 1 / Sqr(Slope * Slope + 1) 'cos(atan(sl))
+            sinbeta = Slope * cosBeta 'sin(atan(sl))
+        End If
+    
+        If ModelSpokeDrag Then fw = 0.0044 'm^2 incremental drag associated with area of spokes
+
+        If ModelBearingLoss Then
+            'pwbearing = 0.091 * vel + 0.0087 * vel ^ 2
+            c1bl = 0.091
+            c2bl = 0.0087
+        End If
+    
+        If ModelWheelInertia Then 'from Validation of a Mathematical Model for Road Cycling Power, Martin et al
+            'example: I = m*r^2 = 0.9 * 0.35^2 = 0.11 kg-m^2
+            r = WheelCir / (2000# * pi)
+            i = 0.14 'moment of inertia of wheels (kg*m^2); i is .28 in paper 2
+            mwheel = i / (r ^ 2#)
+        End If
+    
+        If ModelDynRollRes Then crv = 0.1 'Coefficient for the dynamic rolling resistance, normalized to road inclination; CrVn = CrV*cos(ß) where CrV~.1
+    
+        If Vinit < 0 Then Vinit = 0
+    
+        If SteadyState Then
+            'no accleration - use this to compare to steady-state calculators such as Gribble
+            c0ke = 0
+            c2ke = 0
+        Else
+            c0ke = ((-0.5 * (mass + mwheel) * Vinit ^ 2) / DeltaT)
+            c2ke = (0.5 * (mass + mwheel) / DeltaT)
+        End If
+
+        c1grav = g * mass * sinbeta
+        c1roll = g * mass * crr * cosBeta
+        c1air = 0.5 * (cda + fw) * rhoAir * (VelHeadWind ^ 2) * DraftingFactor
+    
+        c2air = (cda + fw) * rhoAir * VelHeadWind * DraftingFactor
+        c2dynroll = crv * cosBeta
+        c3air = 0.5 * (cda + fw) * rhoAir * DraftingFactor
+    
+        c0 = -power * (1 - LossDT) + c0ke
+        c1 = c1grav + c1roll + c1air + c1bl
+        c2 = c2air + c2bl + c2dynroll + c2ke
+        c3 = c3air
+    
+        'then solve for this:
+        'c3*x^3 + c2*x^2 + c1*x + c0 = 0
+    
+        roots = Qubic(c2 / c3, c1 / c3, c0 / c3) 'returns real roots
+    
+        'below from https://github.com/GoldenCheetah/GoldenCheetah/blob/cabe078453cbe8e136b8adf8d4187a5be878671b/src/Train/PhysicsUtility.cpp
+        'if more than one root, iterate through roots to find positive root closest to zero
+        'if none positive then find a negative one closest to zero
+    
+        vel = roots(1)
+        'but we rarely have more than one...
+        For i = 2 To UBound(roots)
+            thisvel = roots(i)
+            If vel > 0 Then
+                If thisvel > 0 And thisvel < vel Then vel = thisvel
+            Else
+                If thisvel > vel Then vel = thisvel
+            End If
+        Next i
+    
+        If vel < 0 Then vel = 0
+
+        VirtualSpeed = vel
+    End Function
+
+    Function VirtualPower(ByVal velground As Double, ByVal Slope As Double, ByVal mass As Double, Optional ByVal dt As Double = 1#, Optional ByVal crr As Double = 0.004, Optional ByVal cda As Double = 0.4, Optional ByVal rhoAir As Double = 1#, Optional ByVal LossDT As Double = 0, Optional ByVal VelHeadWind As Double = 0#, Optional ByVal WheelCir As Double = 2000#, Optional ByVal vi As Double = 0#, Optional ByVal ModelSpokeDrag As Boolean = False, Optional ByVal ModelBearingLoss As Boolean = False, Optional ByVal ModelWheelInertia As Boolean = False, Optional ByVal ModelDynRollRes As Boolean = False, Optional ByVal SmallAngleApprox As Boolean = False, Optional ByVal SteadyState As Boolean = False, Optional DraftingFactor As Double = 1#) As Double
+        Dim pi As Double
+        Dim g As Double
+        Dim fw As Double
+        Dim mwheel As Double
+        Dim crv As Double
+        Dim r As Double
+        Dim i As Double
+        Dim cosBeta As Double
+        Dim sinbeta As Double
+        Dim PGrav As Double
+        Dim Proll As Double
+        Dim Pair As Double
+        Dim PdynRoll As Double
+        Dim Pke As Double
+        Dim PWBearing As Double
+        Dim velair As Double
+    
+        'Application.Volatile False
+        'LibUDFs.TriggerFastUDFCalculation
+    
+        'VelHeadWind is positive for head wind, negative for tail wind
+
+        pi = 4# * Atn(1#)
+        g = 9.80665 'exact grav accel
+        fw = 0#  'incremental drag associated with area of spokes in m^2
+        PWBearing = 0#
+        mwheel = 0#
+        crv = 0#
+    
+        If SmallAngleApprox Then
+            cosBeta = 1#
+            sinbeta = Slope
+        Else
+            cosBeta = 1# / Sqr(Slope * Slope + 1#) 'cos(atan(sl))
+            sinbeta = Slope * cosBeta 'sin(atan(sl))
+        End If
+    
+        If ModelSpokeDrag Then fw = 0.0044
+
+        If ModelWheelInertia Then
+            r = WheelCir / (2000# * pi)
+            i = 0.14 'moment of inertia of wheels (kg*m^2)
+            mwheel = i / (r ^ 2#)
+        End If
+    
+        If ModelDynRollRes Then crv = 0.1 'CrVn = CrV*cos(ß) where CrV~.1
+    
+        velair = velground + VelHeadWind
+    
+        PGrav = (g * mass * sinbeta) * velground
+        Proll = (g * crr * mass * cosBeta) * velground
+        'maybe drafting factor should be here: (CdA*DraftingFactor)
+        Pair = 0.5 * (cda + fw) * rhoAir * (velair ^ 2#) * velground * DraftingFactor
+        PdynRoll = (velground * crv * cosBeta) * velground
+        If SteadyState Then
+            'no accleration - use this to compare to steady-state calculators such as Gribble
+            Pke = 0
+        Else
+            Pke = 0.5 * (mass + mwheel) * (velground ^ 2# - vi ^ 2#) / dt
+        End If
+
+        If ModelBearingLoss Then PWBearing = 0.091 * velground + 0.0087 * velground ^ 2#
+    
+        VirtualPower = (PGrav + Proll + Pair + Pke + PWBearing + PdynRoll) / (1# - LossDT)
+    End Function
+
+    'https://stackoverflow.com/questions/13457212/cubic-roots-using-vba
+    'https://www.mrexcel.com/board/threads/solving-equations-in-excel.88804/
+    'modified by GCUser to only output non-duplicate real roots
+    Function Qubic(ByVal p As Double, ByVal q As Double, ByVal r As Double) As Double()
+
+        ' Solves a cubic equation of the form:
+        ' y^3 + Py^2 + Qy + R = 0 for real roots.
+        ' Inputs:
+        ' P,Q,R Coefficients of polynomial.
+    
+        ' Outputs:
+        ' ROOT 3-vector containing only unique real roots.
+        ' DUPLICATE ROOTS ARE DISGARDED
+        ' NROOTS The number of roots found. The real roots
+        ' found will be in the first elements of ROOT.
+    
+        ' Method: Closed form employing trigonometric and Cardan
+        ' methods as appropriate.
+    
+        ' Note: To translate and equation of the form:
+        ' O'y^3 + P'y^2 + Q'y + R' = 0 into the form above,
+        ' simply divide thru by O', i.e. P = P'/O', Q = Q'/O',
+        ' etc.
+    
+        Dim z(3) As Double
+        Dim p2 As Double
+        Dim rms As Double
+        Dim a As Double
+        Dim b As Double
+        Dim nRoots As Integer
+        Dim discr As Double
+        Dim t1 As Double
+        Dim t2 As Double
+        Dim ratio As Double
+        Dim sum As Double
+        Dim dif As Double
+        Dim ad3 As Double
+        Dim e0 As Double
+        Dim cPhi As Double
+        Dim phiD3 As Double
+        Dim pd3 As Double
+        Dim root() As Double
+        Dim i As Long
+    
+        Const DEG120 = 2.09439510239319 '2*pi()*120/360
+        Const Tolerance = 0.00001
+        Const Tol2 = 1E-20
+    
+        ' ... translate equation into the form Z^3 + aZ + b = 0
+    
+        p2 = p ^ 2
+        a = q - p2 / 3
+        b = p * (2 * p2 - 9 * q) / 27 + r
+    
+        rms = Sqr(a ^ 2 + b ^ 2)
+    
+        If rms < Tol2 Then
+            ' ... Three equal roots, only return one
+            nRoots = 1
+            ReDim root(1 To 1)
+            root(1) = -p / 3
+            Qubic = root()
+            Exit Function
+        End If
+    
+        discr = (a / 3) ^ 3 + (b / 2) ^ 2
+    
+        If discr > 0 Then
+    
+            t1 = -b / 2
+            t2 = Sqr(discr)
+            If t1 = 0 Then
+                ratio = 1
+            Else
+                ratio = t2 / t1
+            End If
+        
+            If Abs(ratio) < Tolerance Then
+                ' ... three real roots, two (2 and 3) equal. Only return 1 and 2.
+                nRoots = 2
+                z(1) = 2 * Qbrt(t1)
+                z(2) = Qbrt(-t1)
+            Else
+                'this is where most if not all live!
+                ' ... one real root, two complex. Solve using Cardan formula.
+                nRoots = 1
+                sum = t1 + t2
+                dif = t1 - t2
+                z(1) = Qbrt(sum) + Qbrt(dif)
+            End If
+    
+        Else
+            ' ... three real unequal roots. Solve using trigonometric method.
+            nRoots = 3
+            ad3 = a / 3#
+            e0 = 2# * Sqr(-ad3)
+            cPhi = -b / (2# * Sqr(-ad3 ^ 3))
+            phiD3 = acos(cPhi) / 3#
+            z(1) = e0 * Cos(phiD3)
+            z(2) = e0 * Cos(phiD3 + DEG120)
+            z(3) = e0 * Cos(phiD3 - DEG120)
+        End If
+    
+        ' ... now translate back to roots of original equation
+        pd3 = p / 3
+    
+        ReDim root(1 To nRoots)
+    
+        For i = 1 To nRoots
+            root(i) = z(i) - pd3
+        Next i
+    
+        Qubic = root
+    End Function
+
+    Function Qbrt(ByVal x As Double) As Double
+        ' Signed cube root function. Used by Qubic procedure.
+        Qbrt = Abs(x) ^ (1 / 3) * Sgn(x)
+    End Function
+
+    Function acos(ByVal x As Double) As Double
+        acos = Atn(-x / Sqr(-x * x + 1#)) + 2# * Atn(1#)
+    End Function
+
+      
+    'written by GCUser99 based on Validation of a Mathematical Model for Road Cycling Power, Martin et al
+    'dynamic rolling resistance based on http://www.kreuzotter.de/english/espeed.htm#forml
+
+    'power - power measured at hub if drivetrain loss is zero, otherwise power at pedal (watts)
+    'slope - road grade (fractional)
+    'mass - total system mass bike + rider (kg)
+    'crr - coefficient of rolling resistance
+    'cda - coefficient of aerodynamic drag multiplied by frontal area (m^2) Note: if rhoair=1 then this is same as CdARho (air resistance)
+    'rhoair - air density @ ambient conditions (kg/m^3)
+    'lossdt - drive train power loss (fractional)
+    'velHeadWind - headwind (m/s)
+    'wheelcir - wheel circumference (mm)
+    'accel - acceleration (m/s^2)
+    'vel - veloicty relative to ground (m/s)
+
+    'for simulation approach - see paper 2-bikeve code at end - solve for acceleration, then veloicty, then x
+    'like this
+    'accel[n]=((pfile[n-1]/mass)-crr*g*velocity[n-1]-(slope[n]*g*velocity[n-1])-((1/(2*mass))*cda*rho*velocity[n-1]*velocity[n-1]*velocity[n-1]));
+    '//integrating to find velocity and x
+    'velocity[n]=velocity[n-1]+(.5*(accel[n]+accel[n-1])*(timevec[n]-timevec[n-1]));
+    'x[n]=x[n-1]+(.5*(velocity[n]+velocity[n-1])*(timevec[n]-timevec[n-1]));
+
+    'Sub test()
+    '    mass = 75
+    '    height = 1.83
+    '    Cd = 0.708
+    '    bikecda = 0.135
+    '    CdA = CalcCdA(mass, height, Cd) + bikecda
+    
+    '    cwaRider = (1 + 90 * 0.002) * 1.5 * RiderArea(mass, height)
+    'End Sub
+
+
+
+    Function MilesToMeters(ByVal Miles As Double) As Double
+        MilesToMeters = Miles * 1609.34
+    End Function
+
+    Function MPHToMPS(ByVal MPH As Double) As Double
+        MPHToMPS = MPH * 1609.34 / 3600
+    End Function
+
+    Function MPSToMPH(ByVal MPS As Double) As Double
+        MPSToMPH = MPS * 3600 / 1609.34
+    End Function
+
+    Function RiderArea(ByVal mass As Variant, ByVal height As Variant) As Variant
+        'mass in kg, height in meters
+        'see http://www.kreuzotter.de/english/espeed.htm#forml for:
+        'http://www.kreuzotter.de/english/espeedfaq.htm
+        Dim pi As Variant, lambda As Variant, afSin As Variant, adiPos As Variant
+        Dim afCd As Variant, cCad As Variant, cad As Variant
+        Dim cwaRider As Variant
+        pi = 4 * Atn(1)
+        lambda = 42.067 * pi / 180#
+        afSin = Sin(lambda)
+        adiPos = Sqr(mass / (height * 750))
+
+        afCd = 1.5
+    
+        cCad = 0.002
+        cad = 90 'cadence
+    
+        'this is interesting.... cadence dependent CdA
+        cwaRider = (1 + cad * cCad) * afCd * RiderArea
+    
+        'for hands on drops:
+        'cd bike=1.5
+        'A bike=.09
+        'CdAbike=1.5*.09=.135
+    
+        'cd rider=.708
+        'A rider=.2961
+        'CdA rider =.2096
+    
+        'CdA total = .2096+.135
+    
+        'for hands on bar
+        'cd bike=1.5
+        'A bike=.09
+        'CdAbike=1.5*.09=.135
+    
+        'cd rider=.96759
+        'A rider=.37583
+        'CdA rider =.3636
+    
+        'CdA total = .3636+.135
+    
+        RiderArea = adiPos * (((height - adiPos) * afSin + adiPos))
+    End Function
+
+    Function CalcCdA(ByVal mass As Variant, ByVal height As Variant, Optional ByVal Cd As Variant = 0.7) As Variant
+        CalcCdA = RiderArea(mass, height) * Cd
+    End Function
+End Module

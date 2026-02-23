@@ -1,0 +1,560 @@
+
+Module MainModule
+    
+    Private udfs As New Collection
+
+    [DllExport]
+    Public Function xlAutoOpen() As Long
+        ' Required, handles registration
+        Dim udf As UDF
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_Multiply"
+            .FuncText = "TBXLL_Multiply"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: btNumber binding, scalar return"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="Num1", Help:="First number"
+            .AddArgument Name:="Num2", Help:="Second number"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_CellValue"
+            .FuncText = "TBXLL_CellValue"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: btSingleCellRef validation, btValue extraction"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="cell", Help:="cell range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_ConditionalAdd"
+            .FuncText = "TBXLL_ConditionalAdd"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: mixed-type binding (btNumber, btBool, btString)"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="num", Help:="number"
+            .AddArgument Name:="flag", Help:="True or False to add 10"
+            .AddArgument Name:="label", Help:="prefix for the return string"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_AddOptional"
+            .FuncText = "TBXLL_AddOptional"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: optional argument via xltypeMissing"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="a", Help:="required"
+            .AddArgument Name:="b", Help:="required"
+            .AddArgument Name:="c", Help:="optional"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SumArray"
+            .FuncText = "TBXLL_SumArray"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: direct range pass-through to Excel built-in"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="The array to sum"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_Upper"
+            .FuncText = "TBXLL_Upper"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: single-argument pass-through to Excel text built-in"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="text", Help:="Text to convert to upper case"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_Transpose"
+            .FuncText = "TBXLL_Transpose"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: xltypeMulti array result from Excel built-in"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="The range to transpose"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_CountIf"
+            .FuncText = "TBXLL_CountIf"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: multi-argument pass-through to Excel built-in"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="cells to consider for count"
+            .AddArgument Name:="crteria", Help:="Criteria to filter count data"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_Average"
+            .FuncText = "TBXLL_Average"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: chaining Excel built-ins with intermediate xlFree"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="cells to consider average"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_Now"
+            .FuncText = "TBXLL_Now"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: zero-argument volatile Excel built-in"
+            .Visible = True
+            .Volatile = True
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_RecalcCounter"
+            .FuncText = "TBXLL_RecalcCounter"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: Static variable persistence across recalculations"
+            .Visible = True
+            .Volatile = True
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_AlwaysDiv0"
+            .FuncText = "TBXLL_AlwaysDiv0"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: returning a specific Excel error via GetXLErr12"
+            .Visible = True
+            .Volatile = False
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SqrtChecked"
+            .FuncText = "TBXLL_SqrtChecked"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: domain validation with conditional error return"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="num", Help:="Number to take sqrt of"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_Divide"
+            .FuncText = "TBXLL_Divide"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: explicit divide-by-zero error handling"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="num1", Help:="numerator for division"
+            .AddArgument Name:="num2", Help:="denominator for division"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_NotFound"
+            .FuncText = "TBXLL_NotFound"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: xlerrNA for not-found semantics"
+            .Visible = True
+            .Volatile = False
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_TextOnly"
+            .FuncText = "TBXLL_TextOnly"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: strict xltype inspection before binding"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="text", Help:="value to check"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_FailAfterSum"
+            .FuncText = "TBXLL_FailAfterSum"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: xlFree on a deliberately discarded result"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="Array to sum"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_AddInInfo"
+            .FuncText = "TBXLL_AddInInfo"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: mirroring xlAddInManagerInfo12 string"
+            .Visible = True
+            .Volatile = False
+            .Register
+        End With
+        udfs.Add udf
+           
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SumArray2"
+            .FuncText = "TBXLL_SumArray2"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: btArray enumeration with VarType discrimination"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="The array to sum"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_Join"
+            .FuncText = "TBXLL_Join"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: optional btBool, xlfTranspose preprocessing, btArray"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="The range to join"
+            .AddArgument Name:="transpose", Help:="Transpose rows and columns"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SheetName"
+            .FuncText = "TBXLL_SheetName"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: xlSheetNm callback from cell reference"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_NormalizeArray"
+            .FuncText = "TBXLL_NormalizeArray"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: chaining xlfSum into GetXLMulti12 array return"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_IsEmptyCell"
+            .FuncText = "TBXLL_IsEmptyCell"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: btValue returning Empty variant for blank cells"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_MultiplyArrays"
+            .FuncText = "TBXLL_MultiplyArrays"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: btArray input, GetXLMulti12 array return"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="range1", Help:="range"
+            .AddArgument Name:="range2", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_TestMissing"
+            .FuncText = "TBXLL_TestMissing"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: GetXLMissing12 to omit optional argument to built-in"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="number", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_DynamicString"
+            .FuncText = "TBXLL_DynamicString"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
+            .Visible = True
+            .Volatile = False
+            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .AddArgument Name:="range", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_DynamicArray"
+            .FuncText = "TBXLL_DynamicArray"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
+            .Visible = True
+            .Volatile = False
+            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .AddArgument Name:="range", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_DynamicNumber"
+            .FuncText = "TBXLL_DynamicNumber"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
+            .Visible = True
+            .Volatile = False
+            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_DynamicBoolean"
+            .FuncText = "TBXLL_DynamicBoolean"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
+            .Visible = True
+            .Volatile = False
+            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SlowCalcUnsafe"
+            .FuncText = "TBXLL_SlowCalcUnsafe"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: Static pattern, single-threaded, intentionally unsafe"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="number", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SlowCalcSafe"
+            .FuncText = "TBXLL_SlowCalcSafe"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: AllocXLOPER12Result pattern, thread-safe concurrent execution"
+            .Visible = True
+            .Volatile = False
+            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .AddArgument Name:="number", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLLUDFVSpeed"
+            .FuncText = "VSpeed"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Returns Virtual Speed in m/s"
+            .Visible = True
+            .Volatile = False
+            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .AddArgument Name:="Power", Help:="Power in watts"
+            .AddArgument Name:="SpeedInit", Help:="Initial speed in m/s"
+            .AddArgument Name:="Grade", Help:="Grade in percent"
+            .AddArgument Name:="Mass", Help:="Mass in kg"
+            .AddArgument Name:="RhoAir", Help:="Air density in kg/m^3"
+            .AddArgument Name:="Crr", Help:="Coefficient of rolling resitance"
+            .AddArgument Name:="CdA", Help:="Drag coefficient in m^2"
+            .AddArgument Name:="DeltaTime", Help:="Delta time is seconds"
+            .AddArgument Name:="SteadyState", Help:="True if to assume acceleration=0"
+            .Register
+        End With
+        udfs.Add udf
+
+        xlAutoOpen = 1
+    End Function
+    
+    [DllExport]
+    Public Function xlAutoRemove() As Long
+        ' Recommended, handles unregistration
+        ' This gets called when unloading the add-in
+        Dim udf As UDF
+        For Each udf In udfs
+            udf.UnRegister
+        Next udf
+        xlAutoRemove = 1
+    End Function
+    
+    [DllExport]
+    Public Function xlAutoClose() As Long
+        ' Recommended, handles unregistration
+        ' Note: This seems to be called (Excel 365) on Excel closing AND Add-in unload.
+        ' The result is that if the user unloads the add-in manually, unregister happens
+        ' twice - that does not seem to have adverse effects. The real question is 
+        ' whether there is any circumstance where xlAutoRemove executes during unload, as
+        ' it should, and xlAutoClose does not. I have not yet found that circumstance. If
+        ' xlAutoClose always is called after xlAutoRemove, then there is no reason to do
+        ' anything in xlAutoRemove.
+        Dim udf As UDF
+        For Each udf In udfs
+            udf.UnRegister
+        Next udf
+        xlAutoClose = 1
+    End Function
+    
+    [DllExport]
+    Public Function xlAddInManagerInfo12(xAction As XLOPER12) As LongPtr
+        ' Recommended - Excel will call this on load to get the long name of the addin
+        Static xInfo(0) As XLOPER12, xIntAction(0) As XLOPER12
+        Dim xTmp(1) As XLOPER12
+        xTmp(0) = xAction
+        xTmp(1) = GetXLInt12(xltypeInt)
+        Excel12v(xlCoerce, xIntAction(0), 2, xTmp)
+    
+        Dim w As Long
+        CopyMemory w, xIntAction(0).val(0), LenB(w)
+        If w = 1 Then
+            xInfo(0) = GetXLString12("tB XLL Add-in v3.0")
+        Else
+            xInfo(0).xltype = xltypeErr
+            CopyMemory xInfo(0).val(0), xlerrValue, LenB(Of Long)
+        End If
+    
+        Return VarPtr(xInfo(0))
+    End Function
+
+    ' Called by Excel when it is finished with an XLOPER12 result that had xlbitDLLFree set
+    [DllExport]
+    Public Sub xlAutoFree12(ByVal pResult As LongPtr)
+        If pResult = 0 Then Exit Sub
+
+        ' Read xltype at offset 24 (twinBASIC 64-bit XLOPER12 layout)
+        Dim xltype As Long
+        CopyMemory xltype, ByVal (pResult + 24), 4
+        xltype = xltype And &H0FFF
+
+        Select Case xltype
+            Case xltypeStr
+                ' Free string buffer stored at offset 0
+                Dim lpStr As LongPtr
+                CopyMemory lpStr, ByVal pResult, LenB(Of LongPtr)
+                If lpStr <> 0 Then GlobalFree lpStr
+            Case xltypeMulti
+                ' Read element array pointer from offset 0
+                Dim lpArray As LongPtr
+                CopyMemory lpArray, ByVal pResult, LenB(Of LongPtr)
+
+                If lpArray <> 0 Then
+                    ' Read rows and cols
+                    Dim rows As Long, cols As Long
+                    CopyMemory rows, ByVal pResult + LenB(Of LongPtr), 4
+                    CopyMemory cols, ByVal pResult + LenB(Of LongPtr) + 4, 4
+
+                    ' Iterate elements and free any string buffers
+                    Dim count As Long = rows * cols
+                    Dim elemSize As Long = LenB(Of XLOPER12)
+                    Dim i As Long
+                    For i = 0 To count - 1
+                        Dim elemXltype As Long
+                        CopyMemory elemXltype, ByVal lpArray + (i * elemSize) + 24, 4
+                        elemXltype = elemXltype And &H0FFF
+                        If elemXltype = xltypeStr Then
+                            Dim lpElemStr As LongPtr
+                            CopyMemory lpElemStr, ByVal lpArray + (i * elemSize), LenB(Of LongPtr)
+                            If lpElemStr <> 0 Then GlobalFree lpElemStr
+                        End If
+                    Next i
+
+                    ' Free the element array itself
+                    GlobalFree lpArray
+                End If
+        End Select
+
+        ' Free the XLOPER12 struct itself
+        GlobalFree pResult
+    End Sub
+    
+    
+    ' Called by Excel when the user adds the XLL via the Add-in Manager dialog.
+    ' Note: xlAutoOpen is always called first, so xlAutoAdd is only needed for
+    ' actions specific to the user explicitly adding the add-in, as opposed to
+    ' it loading automatically on Excel startup.
+    [DllExport]
+    Public Function xlAutoAdd() As LongPtr
+        Static xResult As XLOPER12
+        ' Nothing to do - all initialization is handled in xlAutoOpen
+        ' Could be used to show a welcome message or first-run configuration dialog
+        xResult.xltype = xltypeNil
+        Return VarPtr(xResult)
+    End Function
+
+End Module

@@ -1,0 +1,150 @@
+Module ThreadSafe
+
+    ' Demonstrates: Static result pattern for single-threaded use, intentionally thread-unsafe for comparison
+    ' Example: =TBXLL_SlowCalcUnsafe(2) -> result of expensive calculation
+    [DllExport]
+    Public Function TBXLL_SlowCalcUnsafe(ByRef pN As XLOPER12) As LongPtr
+        Static xResult As XLOPER12
+        Dim n As Double
+        If Not Bind(pN, btNumber, n, xResult) Then Return VarPtr(xResult)
+        ' Simulate expensive calculation
+        Dim i As Long
+        Dim total As Double
+        For i = 1 To 1000000
+            total = total + Sqr(i) * n
+        Next i
+        xResult = GetXLNum12(total)
+        Return VarPtr(xResult)
+    End Function
+
+    ' Demonstrates: AllocXLOPER12Result pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
+    ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
+    [DllExport]
+    Public Function TBXLL_SlowCalcSafe(ByRef pN As XLOPER12) As LongPtr
+        Dim n As Double
+        Dim xTemp As XLOPER12
+        If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
+        Dim i As Long
+        Dim total As Double
+        For i = 1 To 1000000
+            total = total + Sqr(i) * n
+        Next i
+        xTemp = GetXLNum12(total)
+    ReturnResult:
+        Return AllocXLOPER12Result(xTemp)
+    End Function
+    
+    [DllExport]
+    Public Function TBXLLUDFVSpeed(pPower As XLOPER12, _
+        pSpeedInit As XLOPER12, _
+        pGrade As XLOPER12, _
+        pMass As XLOPER12, _
+        pRhoAir As XLOPER12, _
+        pCrr As XLOPER12, _
+        pCdA As XLOPER12, _
+        pDt As XLOPER12, _
+        pSteadyState As XLOPER12) As LongPtr
+
+        Dim power As Double
+        Dim speedInit As Double
+        Dim grade As Double
+        Dim mass As Double
+        Dim rhoAir As Double
+        Dim crr As Double
+        Dim cda As Double
+        Dim dt As Double
+        Dim steadyState As Boolean
+        Dim xTemp As XLOPER12
+
+        ' Process all non-optional input arguments
+        If Not Bind(pPower, btNumber, power, xTemp) Then GoTo ReturnResult
+        If Not Bind(pSpeedInit, btNumber, speedInit, xTemp) Then GoTo ReturnResult
+        If Not Bind(pGrade, btNumber, grade, xTemp) Then GoTo ReturnResult
+        If Not Bind(pMass, btNumber, mass, xTemp) Then GoTo ReturnResult
+        If Not Bind(pRhoAir, btNumber, rhoAir, xTemp) Then GoTo ReturnResult
+        If Not Bind(pCrr, btNumber, crr, xTemp) Then GoTo ReturnResult
+        If Not Bind(pCdA, btNumber, cda, xTemp) Then GoTo ReturnResult
+        If Not Bind(pDt, btNumber, dt, xTemp) Then GoTo ReturnResult
+
+        ' Process optional argument
+        If pSteadyState.xltype = xltypeMissing Then
+            steadyState = False
+        ElseIf Not Bind(pSteadyState, btBool, steadyState, xTemp) Then
+            GoTo ReturnResult
+        End If
+
+        ' Do the calculations and convert to XLOPER12 for return to worksheet
+        xTemp = GetXLNum12(VirtualSpeed(power, speedInit, grade / 100, mass, dt, crr, cda, rhoAir, , , , , , , , , steadyState))
+
+    ReturnResult:
+        Return AllocXLOPER12Result(xTemp)
+    End Function
+    
+    ' Demonstrates: Thread-safe array return using AllocXLOPER12Result with xltypeMulti
+    ' Example: =TBXLL_DynamicArray({1,2;3,4}) -> {2,4;6,8}  [Ctrl-Shift-Enter]
+    [DllExport]
+    Public Function TBXLL_DynamicArray(ByRef pRange As XLOPER12) As LongPtr
+        Dim arrV() As Variant
+        Dim xTemp As XLOPER12
+        If Not Bind(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
+
+        Dim rows As Long = UBound(arrV, 1) + 1
+        Dim cols As Long = UBound(arrV, 2) + 1
+        Dim arrOut() As Variant
+        ReDim arrOut(rows - 1, cols - 1)
+
+        Dim r As Long, c As Long
+        For r = 0 To rows - 1
+            For c = 0 To cols - 1
+                If VarType(arrV(r, c)) = vbDouble Then
+                    arrOut(r, c) = CDbl(arrV(r, c)) * 2
+                Else
+                    arrOut(r, c) = CVErr(xlerrValue)
+                End If
+            Next c
+        Next r
+
+        Dim xMulti As XLOPER12
+        xMulti = GetXLMulti12(arrOut)
+        If xMulti.xltype <> xltypeMulti Then GoTo ReturnResult
+        xTemp = xMulti
+        ' Do NOT call FreeXLMulti12 here - xlAutoFree12 will free the element array
+
+    ReturnResult:
+        Return AllocXLOPER12Result(xTemp)
+    End Function
+    
+    ' Untested
+    ' The Excel built-in calls themselves (xlfSum, xlfCount, xlFree) don't need to change at all — 
+    ' they write into local sumRes and cntRes variables which are per-call, not shared. 
+    'That's the key insight — Excel built-in calls are fine in thread-safe UDFs as long as their 
+    ' results go into local variables rather than a Static.
+    [DllExport]
+    Public Function TBXLL_Average_ts(ByRef pArr As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim sumRes As XLOPER12
+        Dim cntRes As XLOPER12
+        Dim args(0) As XLOPER12
+        Dim freeArgs(0) As XLOPER12
+
+        args(0) = pArr
+
+        If Excel12v(xlfSum, sumRes, 1, args) <> 0 Then GoTo ReturnResult
+        If Excel12v(xlfCount, cntRes, 1, args) <> 0 Then
+            freeArgs(0) = sumRes
+            Excel12v xlFree, ByVal vbNullPtr, 1, freeArgs
+            GoTo ReturnResult
+        End If
+
+        xTemp = GetXLNum12(Xloper12NumValue(sumRes) / Xloper12NumValue(cntRes))
+
+        freeArgs(0) = sumRes
+        Excel12v xlFree, ByVal vbNullPtr, 1, freeArgs
+        freeArgs(0) = cntRes
+        Excel12v xlFree, ByVal vbNullPtr, 1, freeArgs
+
+    ReturnResult:
+        Return AllocXLOPER12Result(xTemp)
+    End Function
+
+End Module
