@@ -123,9 +123,9 @@ Use when the UDF maintains persistent state, calls non-thread-safe Excel APIs, o
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
     Dim xTemp As XLOPER12
     Dim n As Double
-    If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
-    xTemp = GetXLNum12(n * 2)
-ReturnResult:
+    If Bind(pN, btNumber, n, xTemp) Then
+        xTemp = GetXLNum12(n * 2)
+    End If
     Return AllocResultToCaller(xTemp)
 End Function
 ```
@@ -137,8 +137,9 @@ Each call allocates an independent heap XLOPER12. Excel calls `xlAutoFree12` whe
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
     Static xResult As XLOPER12
     Dim n As Double
-    If Not Bind(pN, btNumber, n, xResult) Then Return VarPtr(xResult)
-    xResult = GetXLNum12(n * 2)
+    If Bind(pN, btNumber, n, xResult) Then
+        xResult = GetXLNum12(n * 2)
+    End If
     Return VarPtr(xResult)
 End Function
 ```
