@@ -384,4 +384,4 @@ This has not yet tested on a 32-bit version of Excel.
 
 ## License
 
-MIT License
+[MIT License](https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file)
