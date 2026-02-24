@@ -89,7 +89,7 @@ End Function
 
 I am a scientist, not a developer. I wrote this as my first [completed] AI assisted coding project, which I probably could not have done on my own. And certainly not without the non-artificial intelligence of Jon Johnson who wrote the [ExcelSDK](https://github.com/fafalone/TBXLLUDF) that this code wraps!
 
-My goal in writing this wrapper was to be able to easily define and use high performance UDF's for large and complex spreadsheet models in a language that I am familiar with - [twinBASIC](https://twinbasic.com). 
+My goal in writing this wrapper was to be able to easily define and use high-performance UDF's for large and complex spreadsheet models, in a language that I am familiar with - [twinBASIC](https://twinbasic.com). 
 
 ## Architecture
 
