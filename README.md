@@ -127,7 +127,7 @@ End Function
 
 ### Pattern 2: Static (Non-thread-safe)
 Use only when the UDF requires shared state across calls (e.g. a recalculation counter).
-All other UDFs should use Pattern 2 regardless of how they are registered.
+All other UDFs should use Pattern 1 regardless of how they are registered.
 ```vba
 ' Demonstrates: Static variable persistence across recalculations with volatile registration (udf.Volatile)
 ' Note: Volatile functions cannot be registered with .SafeThread = True; Use .Volatile = True
