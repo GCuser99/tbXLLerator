@@ -434,13 +434,7 @@ Module Auto_Callbacks
     [DllExport]
     Public Function xlAutoClose() As Long
         ' Recommended, handles unregistration
-        ' Note: This seems to be called (Excel 365) on Excel closing AND Add-in unload.
-        ' The result is that if the user unloads the add-in manually, unregister happens
-        ' twice - that does not seem to have adverse effects. The real question is 
-        ' whether there is any circumstance where xlAutoRemove executes during unload, as
-        ' it should, and xlAutoClose does not. I have not yet found that circumstance. If
-        ' xlAutoClose always is called after xlAutoRemove, then there is no reason to do
-        ' anything in xlAutoRemove.
+        ' This gets called when unloading the add-in (after xlAutoRemove, and when Excel closes)
         Dim udf As UDF
         For Each udf In udfs
             udf.UnRegister
@@ -469,7 +463,7 @@ Module Auto_Callbacks
         Return VarPtr(xInfo(0))
     End Function
 
-    ' Called by Excel when it is finished with an XLOPER12 result that had xlbitDLLFree set
+    ' Called by Excel when UDF is finished with an XLOPER12 result that had xlbitDLLFree set
     [DllExport]
     Public Sub xlAutoFree12(ByVal pResult As LongPtr)
         If pResult = 0 Then Exit Sub
@@ -537,42 +531,6 @@ Module Auto_Callbacks
     /*
     ' Not used yet
     Public Function xlAutoRegister12(ByRef pxName As XLOPER12) As LongPtr
-        Static xResult As XLOPER12
-        Dim funcName As String
-        Dim idx As Long
-
-        ' Validate input
-        If (pxName.xltype And xltypeStr) = 0 Then
-            xResult.xltype = xltypeErr
-            xResult.val.err = xlerrValue
-            xlAutoRegister12 = VarPtr(xResult)
-            Exit Function
-        End If
-
-        ' Convert Excel string to VB string
-        funcName = XlStringToVB(pxName)
-
-        ' Lookup function metadata
-        idx = FindFunctionDescriptor(funcName)
-        If idx < 0 Then
-            xResult.xltype = xltypeErr
-            xResult.val.err = xlerrValue
-            xlAutoRegister12 = VarPtr(xResult)
-            Exit Function
-        End If
-
-        ' Register exactly ONE function
-        Excel12 xlfRegister, xResult, 9, _
-            g_XllName, _
-            g_Functions(idx).ProcName, _
-            g_Functions(idx).TypeText, _
-            g_Functions(idx).ArgNames, _
-            xltypeNum, _
-            g_Functions(idx).Category, _
-            xltypeMissing, _
-            g_Functions(idx).HelpText, _
-            g_Functions(idx).ArgHelp
-
         xlAutoRegister12 = VarPtr(xResult)
     End Function
     */
