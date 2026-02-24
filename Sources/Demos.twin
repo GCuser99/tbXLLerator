@@ -761,6 +761,29 @@ Module Demos
         Return AllocResultToCaller(xTemp)
     End Function
     
+    ' Demonstrates: Visibility = False in UDF registration
+    ' Example: =TBXLL_CellAddress(A1) -> '$A$1'  |  =TBXLL_CellAddress(A1:B2) -> #VALUE!
+    [DllExport]
+    Public Function TBXLL_CellAddress_Hidden(ByRef pRef As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim v As Variant
+        ' Validate is a single cell reference
+        If Not Bind(pRef, btSingleCellRef, v, xTemp) Then GoTo ReturnResult
+        
+        Dim args(1) As XLOPER12
+
+        args(0) = GetXLVariant12(v(0)) 'row
+        args(1) = GetXLVariant12(v(1)) 'column
+
+        ' Call Excel's Address function directly
+        If Excel12v(xlfAddress, xTemp, 2, args) <> 0 Then
+            SetErrorResult xTemp
+        End If
+        
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
     ' Demonstrates: xlSheetNm callback to extract sheet name from a cell reference argument
     ' Example: =TBXLL_SheetName(A1) -> "[Book1.xlsx]Sheet1"
     ' Note: Registered with MacroEquivalent = True to formally support xlSheetNm
