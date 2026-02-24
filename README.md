@@ -113,11 +113,10 @@ In the C SDK, `xltype` precedes `val`. In twinBASIC, `val` precedes `xltype`. Al
 
 ## Memory Management
 
-Two patterns are supported. Pattern 2 is preferred for all new UDFs.
-
-Use when the UDF maintains persistent state, calls non-thread-safe Excel APIs, or is volatile. Register with `ThreadSafe = False`.
+Two patterns are supported. Pattern 1 is preferred for all new UDFs.
 
 ### Pattern 1: Dynamic / xlbitDLLFree (Thread-safe, preferred)
+Each call allocates an independent heap XLOPER12. Excel calls `xlAutoFree12` when done. Register with `ThreadSafe = True` to enable concurrent recalculation.
 ```vba
 [DllExport]
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
@@ -129,9 +128,9 @@ Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
     Return AllocResultToCaller(xTemp)
 End Function
 ```
-Each call allocates an independent heap XLOPER12. Excel calls `xlAutoFree12` when done. Register with `ThreadSafe = True` to enable concurrent recalculation.
 
 ### Pattern 2: Static (Non-thread-safe)
+Use when the UDF maintains persistent state, calls non-thread-safe Excel APIs, or is volatile. Register with `ThreadSafe = False`.
 ```vba
 [DllExport]
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
