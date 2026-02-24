@@ -213,24 +213,34 @@ End Function
 
 ### Array input and output
 ```vba
+' Demonstrates: btArray binding for two ranges, dimension validation, GetXLMulti12 array return
 ' Example: =TBXLL_MultiplyArrays({1,2;3,4}, {2,2;2,2}) -> {2,4;6,8}  [Ctrl-Shift-Enter]
 [DllExport]
 Public Function TBXLL_MultiplyArrays( _
     ByRef pArr1 As XLOPER12, _
     ByRef pArr2 As XLOPER12) As LongPtr
+
     Dim xTemp As XLOPER12
-    Dim arr1() As Variant, arr2() As Variant
+    Dim arr1() As Variant
+    Dim arr2() As Variant
+
+    ' Bind both input arrays
     If Not Bind(pArr1, btArray, arr1, xTemp) Then GoTo ReturnResult
     If Not Bind(pArr2, btArray, arr2, xTemp) Then GoTo ReturnResult
+
+    ' Validate dimensions match
     If UBound(arr1, 1) <> UBound(arr2, 1) Or _
        UBound(arr1, 2) <> UBound(arr2, 2) Then
         SetErrorResult xTemp
         GoTo ReturnResult
     End If
+
+    ' Build result variant array
     Dim rows As Long = UBound(arr1, 1) + 1
     Dim cols As Long = UBound(arr1, 2) + 1
     Dim arrOut() As Variant
     ReDim arrOut(rows - 1, cols - 1)
+
     Dim r As Long, c As Long
     For r = 0 To rows - 1
         For c = 0 To cols - 1
@@ -242,13 +252,18 @@ Public Function TBXLL_MultiplyArrays( _
             End If
         Next c
     Next r
+
+    ' Convert result array to XLOPER12
     Dim xMulti As XLOPER12
     xMulti = GetXLMulti12(arrOut)
+
     If xMulti.xltype <> xltypeMulti Then
         SetErrorResult xTemp
         GoTo ReturnResult
     End If
-    xTemp = xMulti  ' ownership transfers to xlAutoFree12
+
+    ' Do NOT call FreeXLMulti12 here - xlAutoFree12 will free the element array
+    xTemp = xMulti
 ReturnResult:
     Return AllocResultToCaller(xTemp)
 End Function
