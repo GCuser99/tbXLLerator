@@ -146,7 +146,7 @@ End Function
 
 ## Argument Binding
 
-`Bind()` is the unified entry point for all argument type coercion:
+`Bind()` is the unified entry point for all UDF argument type coercion:
 ```vba
 Public Function Bind( _
     ByRef pIn As XLOPER12, _
