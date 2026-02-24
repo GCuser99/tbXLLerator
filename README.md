@@ -73,7 +73,6 @@ Public Function xlAutoOpen() As Long
         .FuncText = "TBXLL_RomanNumeral"
         .Category = "tB XLL UDF Add-In"
         .FuncHelp = "Converts a number to its Roman Numeral representation"
-        .Visible = True
         .Volatile = False
         .ThreadSafe = True '<- this is needed to support fast multi-threaded calculation
         .AddArgument Name:="range", Help:="range"
