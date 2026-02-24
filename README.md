@@ -50,7 +50,7 @@ Public Function TBXLL_RomanNumeral(pIn As XLOPER12) As LongPtr
     Return AllocResultToCaller(xTemp)
 End Function
 ```
-Here is the corresponding (un)registration pattern:
+Here is the corresponding registration pattern:
 ```vba
 Private udfs As New Collection
 
