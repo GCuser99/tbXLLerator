@@ -36,7 +36,7 @@ My goal in writing this wrapper was to easily define and use high-performance UD
 ## Requirements
 
 - [twinBASIC](https://twinbasic.com) (64-bit)
-- Microsoft Excel (64-bit)
+- Microsoft Excel (64-bit) in MS Windows
 - Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF)
 
 ---
@@ -378,7 +378,7 @@ End Sub
 
 ## Limitations
 
-This has not yet tested on a 32-bit version of Excel.
+This has not yet been tested on a 32-bit version of Excel.
 
 ---
 
