@@ -66,7 +66,7 @@ Public Function xlAutoOpen() As Long
         .FuncHelp = "Converts a number to its Roman Numeral representation"
         .Visible = True
         .Volatile = False
-        .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+        .ThreadSafe = True '<- this is needed to support fast multi-threaded calculation
         .AddArgument Name:="range", Help:="range"
         .Register
     End With
