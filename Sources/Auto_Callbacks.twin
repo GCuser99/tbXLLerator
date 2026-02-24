@@ -16,6 +16,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: btNumber binding, scalar return"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="Num1", Help:="First number"
             .AddArgument Name:="Num2", Help:="Second number"
             .Register
@@ -29,6 +30,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: btSingleCellRef validation, btValue extraction"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="cell", Help:="cell range"
             .Register
         End With
@@ -41,6 +43,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: btSingleCellRef location extraction"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="cell", Help:="cell range"
             .Register
         End With
@@ -54,6 +57,7 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: hidden from the Excel Function Wizard"
             .Visible = False
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="cell", Help:="cell range"
             .Register
         End With
@@ -66,6 +70,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: mixed-type binding (btNumber, btBool, btString)"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="num", Help:="number"
             .AddArgument Name:="flag", Help:="True or False to add 10"
             .AddArgument Name:="label", Help:="prefix for the return string"
@@ -80,6 +85,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: optional argument via xltypeMissing"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="a", Help:="required"
             .AddArgument Name:="b", Help:="required"
             .AddArgument Name:="c", Help:="optional"
@@ -94,6 +100,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: direct range pass-through to Excel built-in"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="The array to sum"
             .Register
         End With
@@ -106,6 +113,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: single-argument pass-through to Excel text built-in"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="text", Help:="Text to convert to upper case"
             .Register
         End With
@@ -118,6 +126,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: xltypeMulti array result from Excel built-in"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="The range to transpose"
             .Register
         End With
@@ -130,6 +139,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: multi-argument pass-through to Excel built-in"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="cells to consider for count"
             .AddArgument Name:="crteria", Help:="Criteria to filter count data"
             .Register
@@ -156,6 +166,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: zero-argument volatile Excel built-in"
             .Volatile = True
+            .ThreadSafe = False '<-- not compatible with Volatile = True
             .Register
         End With
         udfs.Add udf
@@ -167,6 +178,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: Static variable persistence across recalculations"
             .Volatile = True
+            .ThreadSafe = False '<-- not compatible with Volatile = True
             .Register
         End With
         udfs.Add udf
@@ -178,6 +190,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: returning a specific Excel error via GetXLErr12"
             .Volatile = False
+            .ThreadSafe = True
             .Register
         End With
         udfs.Add udf
@@ -189,6 +202,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: domain validation with conditional error return"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="num", Help:="Number to take sqrt of"
             .Register
         End With
@@ -201,6 +215,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: explicit divide-by-zero error handling"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="num1", Help:="numerator for division"
             .AddArgument Name:="num2", Help:="denominator for division"
             .Register
@@ -214,6 +229,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: xlerrNA for not-found semantics"
             .Volatile = False
+            .ThreadSafe = True
             .Register
         End With
         udfs.Add udf
@@ -225,6 +241,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: strict xltype inspection before binding"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="text", Help:="value to check"
             .Register
         End With
@@ -237,6 +254,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: xlFree on a deliberately discarded result"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="Array to sum"
             .Register
         End With
@@ -249,6 +267,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: mirroring xlAddInManagerInfo12 string"
             .Volatile = False
+            .ThreadSafe = True
             .Register
         End With
         udfs.Add udf
@@ -260,6 +279,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: btArray enumeration with VarType discrimination"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="The array to sum"
             .Register
         End With
@@ -272,6 +292,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: optional btBool, xlfTranspose preprocessing, btArray"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="The range to join"
             .AddArgument Name:="transpose", Help:="Transpose rows and columns"
             .Register
@@ -285,7 +306,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: xlSheetNm callback from cell reference"
             .Volatile = False
-            .MacroEquivalent = True
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="range"
             .Register
         End With
@@ -298,6 +319,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: chaining xlfSum into GetXLMulti12 array return"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="range"
             .Register
         End With
@@ -310,6 +332,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: btValue returning Empty variant for blank cells"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="range"
             .Register
         End With
@@ -322,6 +345,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: btArray input, GetXLMulti12 array return"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range1", Help:="range"
             .AddArgument Name:="range2", Help:="range"
             .Register
@@ -335,6 +359,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: GetXLMissing12 to omit optional argument to built-in"
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="number", Help:="range"
             .Register
         End With
@@ -347,6 +372,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: Static pattern, single-threaded, intentionally unsafe"
             .Volatile = False
+            .ThreadSafe = False '<-- this will run alot slower
             .AddArgument Name:="number", Help:="range"
             .Register
         End With
@@ -372,7 +398,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Converts a number to its written text form "
             .Volatile = False
-            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="range"
             .Register
         End With
@@ -385,13 +411,11 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Converts a number to its Roman Numeral representation"
             .Volatile = False
-            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="range"
             .Register
         End With
         udfs.Add udf
-        
-        
 
         xlAutoOpen = 1
     End Function
@@ -509,5 +533,48 @@ Module Auto_Callbacks
         xResult.xltype = xltypeNil
         Return VarPtr(xResult)
     End Function
+    
+    /*
+    ' Not used yet
+    Public Function xlAutoRegister12(ByRef pxName As XLOPER12) As LongPtr
+        Static xResult As XLOPER12
+        Dim funcName As String
+        Dim idx As Long
+
+        ' Validate input
+        If (pxName.xltype And xltypeStr) = 0 Then
+            xResult.xltype = xltypeErr
+            xResult.val.err = xlerrValue
+            xlAutoRegister12 = VarPtr(xResult)
+            Exit Function
+        End If
+
+        ' Convert Excel string to VB string
+        funcName = XlStringToVB(pxName)
+
+        ' Lookup function metadata
+        idx = FindFunctionDescriptor(funcName)
+        If idx < 0 Then
+            xResult.xltype = xltypeErr
+            xResult.val.err = xlerrValue
+            xlAutoRegister12 = VarPtr(xResult)
+            Exit Function
+        End If
+
+        ' Register exactly ONE function
+        Excel12 xlfRegister, xResult, 9, _
+            g_XllName, _
+            g_Functions(idx).ProcName, _
+            g_Functions(idx).TypeText, _
+            g_Functions(idx).ArgNames, _
+            xltypeNum, _
+            g_Functions(idx).Category, _
+            xltypeMissing, _
+            g_Functions(idx).HelpText, _
+            g_Functions(idx).ArgHelp
+
+        xlAutoRegister12 = VarPtr(xResult)
+    End Function
+    */
 
 End Module
