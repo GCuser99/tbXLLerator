@@ -354,6 +354,28 @@ End Sub
 
 ## Installation
 
+1. Install [twinBASIC](https://twinbasic.com) (64-bit)
+2. Clone or download this repository
+3. Clone or download Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF) and add the SDK source files to your twinBASIC project
+4. Open the `.twinproj` file in twinBASIC
+5. Build the project — twinBASIC will produce a `.dll` file in the output folder
+6. Rename the `.dll` to `.xll`
+7. In Excel, go to **File → Options → Add-ins → Manage: Excel Add-ins → Go**
+8. Click **Browse** and select the `.xll` file
+9. The add-in will load and UDFs will be available in the Function Wizard under the category defined in `xlAutoOpen`
+
+### To use as a starting point for your own XLL
+
+- Copy the `Helpers` module and `UDF` class into your own twinBASIC project
+- Add your UDF functions following the patterns in the `Demos` module
+- Register each UDF in `xlAutoOpen` using the `UDF` class
+- Unregister in `xlAutoClose` by iterating the `udfs` collection
+
+### Notes
+
+- The `.xll` must match Excel's bitness — this framework currently targets 64-bit only
+- Excel must be fully closed before replacing or updating the `.xll` file
+- If Excel shows `#NAME?` after reloading, close Excel fully and reopen
 ---
 
 ## Limitations
