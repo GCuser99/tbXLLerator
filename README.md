@@ -319,7 +319,10 @@ End With
 | `Volatile` | Boolean | Adds `!` to type string |
 | `ThreadSafe` | Boolean | Adds `$` to type string, mutually exclusive with MacroEquivalent |
 | `MacroEquivalent` | Boolean | Adds `#` to type string, enables macro-only API calls |
-| `AddArgument` | N/A | Adds a new argument definition (name + help text) to the UDF |
+
+| Methods | Arguments | Notes |
+|----------|------|-------|
+| `AddArgument` | name, help | Adds a new argument definition to the UDF |
 | `Register` | N/A | Registers the UDF for use as a worksheet function |
 | `Unregister` | N/A | Unregisters the UDF for use as a worksheet function |
 
