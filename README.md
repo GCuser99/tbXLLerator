@@ -297,7 +297,6 @@ With udf
     .FuncText    = "TBXLL_Multiply"
     .Category    = "My Add-In"
     .FuncHelp    = "Demo: btNumber binding, scalar return"
-    .Visible     = True
     .Volatile    = False
     .ThreadSafe  = True
     .AddArgument Name:="a", Help:="First number"
