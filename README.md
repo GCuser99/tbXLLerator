@@ -132,13 +132,13 @@ All other UDFs should use Pattern 2 regardless of how they are registered.
 ' Note: Volatile functions cannot be registered with .SafeThread = True; Use .Volatile = True
 [DllExport]
 Public Function TBXLL_RecalcCounter() As LongPtr
-    Static xResult As XLOPER12
+    Static xResult As XLOPER12 '<-- required
     Static counter As Long
 
     counter = counter + 1
     xResult = GetXLInt12(counter)
 
-    Return VarPtr(xResult)
+    Return VarPtr(xResult) '<-- required
 End Function
 ```
 
