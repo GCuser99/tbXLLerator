@@ -353,6 +353,12 @@ End Sub
 
 ---
 
+## Limitations
+
+This has not yet tested on a 32-bit version of Excel.
+
+---
+
 ## License
 
 MIT License
