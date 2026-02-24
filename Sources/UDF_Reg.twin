@@ -150,6 +150,10 @@ Public Class UDF
         Dim i As Long
         Dim txt As String
         
+        ' First some compatibility checks...
+        If Me.Volatile Then Me.ThreadSafe = False
+        If Me.MacroEquivalent Then Me.ThreadSafe = False
+        
         ' Get this XLL's name (DO NOT xlFree this)
         Excel12v xlGetName, xDll(0), 0, dummy
 
