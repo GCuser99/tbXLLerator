@@ -81,7 +81,7 @@ The framework handles the low-level XLOPER12 memory layout, argument binding, ty
 ### XLOPER12 Layout (twinBASIC 64-bit)
 
 The twinBASIC XLOPER12 struct differs from the C SDK layout:
-```vb
+```vba
 Public Type XLOPER12
     val(2) As LongLong   ' 24 bytes — union storage at offsets 0, 8, 16
     xltype As XloperTypes' 4 bytes  — at offset 24
@@ -99,7 +99,7 @@ Two patterns are supported. Pattern 2 is preferred for all new UDFs.
 Use when the UDF maintains persistent state, calls non-thread-safe Excel APIs, or is volatile. Register with `ThreadSafe = False`.
 
 ### Pattern 1: Dynamic / xlbitDLLFree (Thread-safe, preferred)
-```vb
+```vba
 [DllExport]
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
     Dim xTemp As XLOPER12
@@ -113,7 +113,7 @@ End Function
 Each call allocates an independent heap XLOPER12. Excel calls `xlAutoFree12` when done. Register with `ThreadSafe = True` to enable concurrent recalculation.
 
 ### Pattern 2: Static (Non-thread-safe)
-```vb
+```vba
 [DllExport]
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
     Static xResult As XLOPER12
@@ -129,7 +129,7 @@ End Function
 ## Argument Binding
 
 `Bind()` is the unified entry point for all argument type coercion:
-```vb
+```vba
 Public Function Bind( _
     ByRef pIn As XLOPER12, _
     ByVal target As BindType, _
@@ -154,7 +154,7 @@ On failure, `Bind` sets `xResult` to `#VALUE!` automatically. Supported bind typ
 ## Examples
 
 ### Scalar numeric UDF
-```vb
+```vba
 ' Example: =TBXLL_Multiply(3, 4) -> 12
 [DllExport]
 Public Function TBXLL_Multiply( _
@@ -171,7 +171,7 @@ End Function
 ```
 
 ### Optional argument
-```vb
+```vba
 ' Example: =TBXLL_AddOptional(1, 2) -> 3  |  =TBXLL_AddOptional(1, 2, 3) -> 6
 [DllExport]
 Public Function TBXLL_AddOptional( _
@@ -194,7 +194,7 @@ End Function
 ```
 
 ### Array input and output
-```vb
+```vba
 ' Example: =TBXLL_MultiplyArrays({1,2;3,4}, {2,2;2,2}) -> {2,4;6,8}  [Ctrl-Shift-Enter]
 [DllExport]
 Public Function TBXLL_MultiplyArrays( _
@@ -237,7 +237,7 @@ End Function
 ```
 
 ### Delegating to an Excel built-in
-```vb
+```vba
 ' Example: =TBXLL_SumArray(A1:A10) -> SUM(A1:A10)
 [DllExport]
 Public Function TBXLL_SumArray(ByRef pArr As XLOPER12) As LongPtr
@@ -252,7 +252,7 @@ End Function
 ```
 
 ### Computationally intensive thread-safe UDF
-```vb
+```vba
 ' Example: =TBXLL_SlowCalcSafe(2) -> result, runs concurrently across cells
 [DllExport]
 Public Function TBXLL_SlowCalcSafe(ByRef pN As XLOPER12) As LongPtr
@@ -274,7 +274,7 @@ End Function
 ## UDF Registration
 
 UDFs are registered in `xlAutoOpen` using the `UDF` class:
-```vb
+```vba
 Dim u As New UDF
 With u
     .ProcName    = "TBXLL_Multiply"
@@ -308,7 +308,7 @@ End With
 ## xlAutoFree12
 
 `xlAutoFree12` is called by Excel when it finishes with any XLOPER12 result that has `xlbitDLLFree` set. It handles all return types:
-```vb
+```vba
 [DllExport]
 Public Sub xlAutoFree12(ByVal pResult As LongPtr)
     If pResult = 0 Then Exit Sub
