@@ -313,7 +313,7 @@ End With
 | `FuncText` | String | Name shown in Function Wizard |
 | `Category` | String | Function Wizard category |
 | `FuncHelp` | String | Function description |
-| `Visible` | Boolean | Show in Function Wizard |
+| `Visible` | Boolean | Show in Function Wizard (default = True) |
 | `Volatile` | Boolean | Adds `!` to type string |
 | `ThreadSafe` | Boolean | Adds `$` to type string, mutually exclusive with MacroEquivalent |
 | `MacroEquivalent` | Boolean | Adds `#` to type string, enables macro-only API calls |
