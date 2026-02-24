@@ -121,7 +121,7 @@ Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
     If Bind(pN, btNumber, n, xTemp) Then
         xTemp = GetXLNum12(n * 2)
     End If
-    Return AllocResultToCaller(xTemp)
+    Return AllocResultToCaller(xTemp) '<-- required
 End Function
 ```
 
