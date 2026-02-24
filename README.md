@@ -29,7 +29,7 @@ The framework handles the low-level XLOPER12 memory layout, argument binding, ty
 
 - [twinBASIC](https://twinbasic.com) (64-bit)
 - Microsoft Excel (64-bit)
-- Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF/blob/main/ExcelSDK.twin)
+- Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF)
 
 ---
 
