@@ -42,7 +42,7 @@ The framework handles the low-level XLOPER12 memory layout, argument binding, ty
 | `ExcelSDK` | XLOPER12 struct, constants, enums, Excel12v declaration |
 | `Helpers` | Bind framework, coercion helpers, GetXL* helpers, memory management |
 | `Auto_Callbacks` | xlAutoOpen, xlAutoRemove, xlAutoFree12, xlAddInManagerInfo12 |
-| `UDF` | Convenience wrapper for UDF registration |
+| `UDF` | Convenience wrapper class for UDF registration |
 | `Demos` | Demo UDFs illustrating every supported pattern |
 
 ### XLOPER12 Layout (twinBASIC 64-bit)
