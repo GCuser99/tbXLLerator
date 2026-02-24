@@ -126,7 +126,7 @@ Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
     If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
     xTemp = GetXLNum12(n * 2)
 ReturnResult:
-    Return AllocXLOPER12Result(xTemp)
+    Return AllocResultToCaller(xTemp)
 End Function
 ```
 Each call allocates an independent heap XLOPER12. Excel calls `xlAutoFree12` when done. Register with `ThreadSafe = True` to enable concurrent recalculation.
@@ -185,7 +185,7 @@ Public Function TBXLL_Multiply( _
     If Not Bind(pB, btNumber, b, xTemp) Then GoTo ReturnResult
     xTemp = GetXLNum12(a * b)
 ReturnResult:
-    Return AllocXLOPER12Result(xTemp)
+    Return AllocResultToCaller(xTemp)
 End Function
 ```
 
@@ -208,7 +208,7 @@ Public Function TBXLL_AddOptional( _
     End If
     xTemp = GetXLNum12(a + b + c)
 ReturnResult:
-    Return AllocXLOPER12Result(xTemp)
+    Return AllocResultToCaller(xTemp)
 End Function
 ```
 
@@ -251,7 +251,7 @@ Public Function TBXLL_MultiplyArrays( _
     End If
     xTemp = xMulti  ' ownership transfers to xlAutoFree12
 ReturnResult:
-    Return AllocXLOPER12Result(xTemp)
+    Return AllocResultToCaller(xTemp)
 End Function
 ```
 
@@ -266,7 +266,7 @@ Public Function TBXLL_SumArray(ByRef pArr As XLOPER12) As LongPtr
     If Excel12v(xlfSum, xTemp, 1, args) <> 0 Then
         SetErrorResult xTemp
     End If
-    Return AllocXLOPER12Result(xTemp)
+    Return AllocResultToCaller(xTemp)
 End Function
 ```
 
@@ -284,7 +284,7 @@ Public Function TBXLL_SlowCalcSafe(ByRef pN As XLOPER12) As LongPtr
     Next i
     xTemp = GetXLNum12(total)
 ReturnResult:
-    Return AllocXLOPER12Result(xTemp)
+    Return AllocResultToCaller(xTemp)
 End Function
 ```
 
