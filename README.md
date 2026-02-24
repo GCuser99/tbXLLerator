@@ -269,32 +269,14 @@ Public Function TBXLL_SumArray(ByRef pArr As XLOPER12) As LongPtr
 End Function
 ```
 
-### Computationally intensive thread-safe UDF
-```vba
-' Example: =TBXLL_SlowCalcSafe(2) -> result, runs concurrently across cells
-[DllExport]
-Public Function TBXLL_SlowCalcSafe(ByRef pN As XLOPER12) As LongPtr
-    Dim xTemp As XLOPER12
-    Dim n As Double
-    If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
-    Dim i As Long, total As Double
-    For i = 1 To 1000000
-        total = total + Sqr(i) * n
-    Next i
-    xTemp = GetXLNum12(total)
-ReturnResult:
-    Return AllocResultToCaller(xTemp)
-End Function
-```
-
 ---
 
 ## UDF Registration
 
 UDFs are registered in `xlAutoOpen` using the `UDF` class:
 ```vba
-Dim u As New UDF
-With u
+Dim udf As New UDF
+With udf
     .ProcName    = "TBXLL_Multiply"
     .FuncText    = "TBXLL_Multiply"
     .Category    = "My Add-In"
@@ -308,7 +290,7 @@ With u
 End With
 ```
 
-### Registration properties
+### Registration properties and methods
 
 | Property | Type | Notes |
 |----------|------|-------|
@@ -320,6 +302,9 @@ End With
 | `Volatile` | Boolean | Adds `!` to type string |
 | `ThreadSafe` | Boolean | Adds `$` to type string, mutually exclusive with MacroEquivalent |
 | `MacroEquivalent` | Boolean | Adds `#` to type string, enables macro-only API calls |
+| `AddArgument` | N/A | Adds a new argument definition (name + help text) to the UDF |
+| `Register` | N/A | Registers the UDF for use as a worksheet function |
+| `Unregister` | N/A | Unregisters the UDF for use as a worksheet function |
 
 ---
 
@@ -345,25 +330,6 @@ Public Sub xlAutoFree12(ByVal pResult As LongPtr)
     GlobalFree pResult
 End Sub
 ```
-
-Note: `xlAutoFree12` is declared `ByVal LongPtr` rather than `ByRef XLOPER12` due to a twinBASIC pointer semantics difference from the C SDK. This is verified ABI-equivalent from Excel's perspective.
-
----
-
-## Thread Safety
-
-Multithreaded recalculation performance was verified by comparing `TBXLL_SlowCalcUnsafe` (Pattern 1, `ThreadSafe = False`) against `TBXLL_SlowCalcSafe` (Pattern 2, `ThreadSafe = True`) across 100 cells. On a multi-core machine the thread-safe version recalculates dramatically faster due to concurrent execution across all available cores.
-
-Memory correctness of `xlAutoFree12` was verified by monitoring Excel process memory in Task Manager across repeated F9 recalculations with and without `xlAutoFree12` exported — stable memory with, steady growth without.
-
----
-
-## Known Limitations
-
-- `xltypeRef` (multi-sheet or external references) is not supported in `CoerceToSingleCellRef`
-- `btSingleCellRef` returns a dummy value due to XLREF12 round-trip issues through twinBASIC Variant; use `btValue` to extract the cell's value
-- `xlAutoFree12` for `xltypeMulti` frees embedded `xltypeStr` elements but does not recurse into nested `xltypeMulti` elements (not a practical limitation as Excel does not produce nested multis)
-- `MacroEquivalent` (`#`) and `ThreadSafe` (`$`) are mutually exclusive in Excel's registration model
 
 ---
 
