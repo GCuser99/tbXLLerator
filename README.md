@@ -103,23 +103,12 @@ My goal in writing this wrapper was to be able to easily define and use high-per
 | `UDF` | Convenience wrapper class for UDF registration |
 | `Demos` | Demo UDFs illustrating every supported pattern |
 
-### XLOPER12 Layout (twinBASIC 64-bit)
-
-The twinBASIC XLOPER12 struct differs from the C SDK layout:
-```vba
-Public Type XLOPER12
-    val(2) As LongLong   ' 24 bytes — union storage at offsets 0, 8, 16
-    xltype As XloperTypes' 4 bytes  — at offset 24
-End Type
-```
-
-In the C SDK, `xltype` precedes `val`. In twinBASIC, `val` precedes `xltype`. All memory operations in this framework account for this difference explicitly.
 
 ---
 
 ## Memory Management
 
-Two patterns are supported. Pattern 1 is preferred for all new UDFs.
+Two patterns are supported. Pattern 1 is preferred for modern UDFs, with a few exceptions.
 
 ### Pattern 1: Dynamic / xlbitDLLFree (Thread-safe, preferred)
 Each call allocates an independent heap XLOPER12. Excel calls `xlAutoFree12` when done. Register with `ThreadSafe = True` to enable concurrent recalculation.
@@ -140,7 +129,7 @@ Use when the UDF maintains persistent state, calls non-thread-safe Excel APIs, o
 ```vba
 [DllExport]
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
-    Static xResult As XLOPER12
+    Static xResult As XLOPER12 '<-- required
     Dim n As Double
     If Bind(pN, btNumber, n, xResult) Then
         xResult = GetXLNum12(n * 2)
@@ -176,7 +165,7 @@ On failure, `Bind` sets `xResult` to `#VALUE!` automatically. Supported bind typ
 
 ---
 
-## Examples
+## More Examples
 
 ### Scalar numeric UDF
 ```vba
