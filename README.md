@@ -352,5 +352,4 @@ End Sub
 
 ## License
 
-MIT
-
+MIT License
