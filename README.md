@@ -125,16 +125,23 @@ End Function
 ```
 
 ### Pattern 2: Static (Non-thread-safe)
-Use when the UDF maintains persistent state, calls non-thread-safe Excel APIs, or is volatile. Register with `ThreadSafe = False`.
+Use only when the UDF requires shared state across calls (e.g. a recalculation counter).
+All other UDFs should use Pattern 2 regardless of how they are registered.
 ```vba
+' Demonstrates: Static variable persistence across recalculations with volatile registration (udf.Volatile) not function code
+' Example: =TBXLL_RecalcCounter() -> increments on each recalc
+' Note: Volatile functions cannot be registered with .SafeThread = True; Use .Volatile = True
+' Note: This must use the alternate static memory management model because of the state 
+' persistence of "counter" across calls
 [DllExport]
-Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
-    Static xResult As XLOPER12 '<-- required
-    Dim n As Double
-    If Bind(pN, btNumber, n, xResult) Then
-        xResult = GetXLNum12(n * 2)
-    End If
-    Return VarPtr(xResult) '<-- required
+Public Function TBXLL_RecalcCounter() As LongPtr
+    Static xResult As XLOPER12
+    Static counter As Long
+
+    counter = counter + 1
+    xResult = GetXLInt12(counter)
+
+    Return VarPtr(xResult)
 End Function
 ```
 
