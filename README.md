@@ -104,7 +104,6 @@ My goal in writing this wrapper was to be able to easily define and use high-per
 | `UDF` | Convenience wrapper class for UDF registration |
 | `Demos` | Demo UDFs illustrating every supported pattern |
 
-
 ---
 
 ## Memory Management
@@ -135,7 +134,7 @@ Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
     If Bind(pN, btNumber, n, xResult) Then
         xResult = GetXLNum12(n * 2)
     End If
-    Return VarPtr(xResult)
+    Return VarPtr(xResult) '<-- required
 End Function
 ```
 
