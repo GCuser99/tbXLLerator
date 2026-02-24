@@ -352,6 +352,10 @@ End Sub
 
 ---
 
+## Installation
+
+---
+
 ## Limitations
 
 This has not yet tested on a 32-bit version of Excel.
