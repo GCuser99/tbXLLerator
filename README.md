@@ -33,6 +33,39 @@ The framework handles the low-level XLOPER12 memory layout, argument binding, ty
 
 ---
 
+## Quick Example
+
+```vba
+    [DllExport]
+    ' Converts a number to its Roman Numeral representation - thread-safe
+    Public Function TBXLL_RomanNumeral(pIn As XLOPER12) As LongPtr
+        Dim num As Long
+        Dim xTemp As XLOPER12
+        ' Convert the input XLOPER12 to a number
+        If Bind(pIn, btNumber, num, xTemp) Then
+            ' Do the calculations and convert string to XLOPER12 for return to worksheet
+            xTemp = GetXLString12(num_getroman(num)) 'calls num_getroman that does all the work
+        End If
+        Return AllocResultToCaller(xTemp)
+    End Function
+```
+
+```vba
+    Set udf = New UDF
+    With udf
+        .ProcName = "TBXLL_RomanNumeral"
+        .FuncText = "TBXLL_RomanNumeral"
+        .Category = "tB XLL UDF Add-In"
+        .FuncHelp = "Converts a number to its Roman Numeral representation"
+        .Visible = True
+        .Volatile = False
+        .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+        .AddArgument Name:="range", Help:="range"
+        .Register
+    End With
+    udfs.Add udf
+```
+
 ## Architecture
 
 ### Modules
