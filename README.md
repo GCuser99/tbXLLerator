@@ -45,7 +45,8 @@ Public Function TBXLL_RomanNumeral(pIn As XLOPER12) As LongPtr
     ' Convert the input XLOPER12 to a number
     If Bind(pIn, btNumber, num, xTemp) Then
         ' Do the calculations and convert string to XLOPER12 for return to worksheet
-        xTemp = GetXLString12(num_getroman(num)) 'num_getroman does all the work (written by Jon Johnson)
+        ' num_getroman does all the work (written by Jon Johnson)
+        xTemp = GetXLString12(num_getroman(num))
     End If
     Return AllocResultToCaller(xTemp)
 End Function
