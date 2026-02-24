@@ -10,6 +10,8 @@ array.xlsx
 debug.xlsx
 multithread.xlsx
 tbXLLerator_v*.twinproj
+dev/
+win64/
 
 # User-specific files
 *.rsuser
