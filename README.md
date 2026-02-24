@@ -91,7 +91,7 @@ End Function
 
 | Module | Purpose |
 |--------|---------|
-| `ExcelSDK` | XLOPER12 struct, constants, enums, Excel12v declaration (written by Jon Johnson)|
+| `ExcelSDK` | XLOPER12 struct, constants, enums, Excel12v declaration (**written by Jon Johnson**)|
 | `Helpers` | Bind framework, coercion helpers, GetXL* helpers, memory management |
 | `Auto_Callbacks` | xlAutoOpen, xlAutoClose, xlAutoRemove, xlAutoFree12, xlAddInManagerInfo12 |
 | `UDF` | Convenience wrapper class for UDF registration |
