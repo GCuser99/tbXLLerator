@@ -1,0 +1,821 @@
+Module Demos
+    
+    '------------------------------------------------------------------------------
+    ' XLL MEMORY MANAGEMENT STRATEGY
+    '
+    ' Excel XLL UDFs must return a pointer to an XLOPER12. This XLL uses two
+    ' memory management patterns. Pattern 2 (dynamic) is preferred for all new
+    ' UDFs unless a specific reason requires Pattern 1 (static).
+    '
+    '
+    ' PATTERN 1: STATIC RESULT (Non-thread-safe UDFs)
+    ' ------------------------------------------------
+    '   [DllExport]
+    '   Public Function TBXLL_Example(...) As LongPtr
+    '       Static xResult As XLOPER12   ' persists for XLL lifetime
+    '       ...
+    '       Return VarPtr(xResult)
+    '   End Function
+    '
+    ' Excel guarantees non-thread-safe UDFs are never executed concurrently,
+    ' so returning a pointer to static storage is safe. However this pattern
+    ' prevents Excel from calling the function concurrently across cells,
+    ' which limits performance on large models.
+    '
+    ' Use ONLY when:
+    '   - UDF maintains persistent state across calls (e.g. TBXLL_RecalcCounter)
+    '   - UDF calls non-thread-safe Excel APIs (e.g. xlSheetNm, xlfCaller)
+    '   - UDF is volatile (Excel serializes volatile functions anyway)
+    '
+    ' Register with ThreadSafe = False (default).
+    '
+    '
+    ' PATTERN 2: DYNAMIC ALLOCATION WITH xlbitDLLFree (Preferred)
+    ' ------------------------------------------------------------
+    '   [DllExport]
+    '   Public Function TBXLL_Example(...) As LongPtr
+    '       Dim xTemp As XLOPER12        ' local, per-call — no Static
+    '       ...
+    '       Return AllocResultToCaller(xTemp)
+    '   End Function
+    '
+    ' Each call allocates its own independent XLOPER12 on the heap via
+    ' AllocResultToCaller. Excel calls xlAutoFree12 when done with the result.
+    ' This pattern allows Excel to execute the function concurrently across
+    ' cells during multithreaded recalculation, which can dramatically improve
+    ' performance on large models with many cells calling the same UDF.
+    '
+    ' Use for all pure functions with no shared state and no Excel API calls.
+    ' Register with ThreadSafe = True.
+    '
+    '
+    ' ERROR HANDLING WITH PATTERN 2
+    ' ------------------------------
+    ' All code paths must set xTemp before returning. Use GoTo ReturnResult
+    ' to funnel all paths through a single AllocResultToCaller call:
+    '
+    '   If Not Bind(...) Then GoTo ReturnResult  ' Bind sets xTemp on failure
+    '   If Excel12v(...) <> 0 Then
+    '       SetErrorResult xTemp                 ' must set explicitly on Excel12v failure
+    '       GoTo ReturnResult
+    '   End If
+    '   xTemp = GetXLNum12(result)
+    ' ReturnResult:
+    '   Return AllocResultToCaller(xTemp)
+    '
+    ' Note: Bind sets xTemp automatically on failure. Excel12v and GetXLMulti12
+    ' do NOT — SetErrorResult xTemp must be called explicitly before GoTo.
+    '
+    '
+    ' xlAutoFree12 IMPLEMENTATION NOTE (twinBASIC-specific)
+    ' -----------------------------------------------------
+    ' The Excel SDK declares xlAutoFree12 as:
+    '   void WINAPI xlAutoFree12(LPXLOPER12 pResult)
+    '
+    ' In C, LPXLOPER12 is the raw pointer value returned by the UDF. In
+    ' twinBASIC, ByRef XLOPER12 does not expose that raw pointer — VarPtr(pResult)
+    ' returns the stack address of the ByRef parameter, not the GlobalAlloc pointer.
+    '
+    ' Therefore xlAutoFree12 is declared as ByVal LongPtr:
+    '   Public Sub xlAutoFree12(ByVal pResult As LongPtr)
+    '
+    ' This receives the exact pointer returned by the UDF. From Excel's
+    ' perspective this is ABI-equivalent to the standard C implementation.
+    ' xlAutoFree12 handles xltypeStr, xltypeMulti (including embedded strings),
+    ' and all scalar types. It is safe to export even when not needed — Excel
+    ' only calls it when xlbitDLLFree is set on a returned XLOPER12.
+    '
+    '
+    ' WARNING: DO NOT MIX PATTERNS
+    ' ----------------------------
+    ' Each UDF must use exactly one pattern:
+    '   - Do NOT return Static storage from a ThreadSafe UDF
+    '   - Do NOT use Dynamic allocation without setting xlbitDLLFree
+    '   - Do NOT call FreeXLMulti12 before AllocResultToCaller on array results
+    '     (xlAutoFree12 handles element array cleanup for thread-safe UDFs)
+    '------------------------------------------------------------------------------
+    
+    ' Demonstrates: Static result pattern for single-threaded use, intentionally thread-unsafe for comparison
+    ' Example: =TBXLL_SlowCalcUnsafe(2) -> result of expensive calculation
+    [DllExport]
+    Public Function TBXLL_SlowCalcUnsafe(ByRef pN As XLOPER12) As LongPtr
+        Static xResult As XLOPER12
+        Dim n As Double
+        If Not Bind(pN, btNumber, n, xResult) Then Return VarPtr(xResult)
+        ' Simulate expensive calculation
+        Dim i As Long
+        Dim total As Double
+        For i = 1 To 1000000
+            total = total + Sqr(i) * n
+        Next i
+        xResult = GetXLNum12(total)
+        Return VarPtr(xResult)
+    End Function
+
+    ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
+    ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
+    [DllExport]
+    Public Function TBXLL_SlowCalcSafe(ByRef pN As XLOPER12) As LongPtr
+        Dim n As Double
+        Dim xTemp As XLOPER12
+        If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
+        Dim i As Long
+        Dim total As Double
+        For i = 1 To 1000000
+            total = total + Sqr(i) * n
+        Next i
+        xTemp = GetXLNum12(total)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+
+    
+    ' Demonstrates: Chaining multiple Excel built-in calls with intermediate xlFree cleanup
+    ' Example: =TBXLL_Average(A1:A4) -> AVERAGE(A1:A4)
+    [DllExport]
+    Public Function TBXLL_Average(ByRef pArr As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim sumRes As XLOPER12
+        Dim cntRes As XLOPER12
+        Dim args(0) As XLOPER12
+        Dim freeArgs(0) As XLOPER12
+
+        args(0) = pArr
+
+        If Excel12v(xlfSum, sumRes, 1, args) <> 0 Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        If Excel12v(xlfCount, cntRes, 1, args) <> 0 Then
+            freeArgs(0) = sumRes
+            Excel12v xlFree, ByVal vbNullPtr, 1, freeArgs
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        xTemp = GetXLNum12(Xloper12NumValue(sumRes) / Xloper12NumValue(cntRes))
+
+        freeArgs(0) = sumRes
+        Excel12v xlFree, ByVal vbNullPtr, 1, freeArgs
+        freeArgs(0) = cntRes
+        Excel12v xlFree, ByVal vbNullPtr, 1, freeArgs
+
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Demonstrates: btNumber binding for two scalar arguments, direct numeric return
+    ' Example: =TBXLL_Multiply(3, 4) -> 12
+    [DllExport]
+    Public Function TBXLL_Multiply( _
+        ByRef pA As XLOPER12, _
+        ByRef pB As XLOPER12) As LongPtr
+
+        Dim xTemp As XLOPER12
+        Dim a As Double, b As Double
+
+        If Not Bind(pA, btNumber, a, xTemp) Then GoTo ReturnResult
+        If Not Bind(pB, btNumber, b, xTemp) Then GoTo ReturnResult
+
+        xTemp = GetXLNum12(a * b)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Mixed-type binding (btNumber, btBool, btString) in a single UDF
+    ' Example: =TBXLL_ConditionalAdd(5, TRUE, "Total") -> "Total: 15"
+    [DllExport]
+    Public Function TBXLL_ConditionalAdd( _
+        ByRef pNum As XLOPER12, _
+        ByRef pFlag As XLOPER12, _
+        ByRef pLabel As XLOPER12) As LongPtr
+
+        Dim xTemp As XLOPER12
+        Dim n As Double
+        Dim flag As Boolean
+        Dim label As String
+
+        If Not Bind(pNum, btNumber, n, xTemp) Then GoTo ReturnResult
+        If Not Bind(pFlag, btBool, flag, xTemp) Then GoTo ReturnResult
+        If Not Bind(pLabel, btString, label, xTemp) Then GoTo ReturnResult
+
+        If flag Then
+            xTemp = GetXLString12(label & ": " & CStr(n + 10))
+        Else
+            xTemp = GetXLString12(label & ": " & CStr(n))
+        End If
+
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Optional argument handling using xltypeMissing detection
+    ' Example: =TBXLL_AddOptional(1, 2) -> 3  |  =TBXLL_AddOptional(1, 2, 3) -> 6
+    [DllExport]
+    Public Function TBXLL_AddOptional( _
+        ByRef pA As XLOPER12, _
+        ByRef pB As XLOPER12, _
+        ByRef pC As XLOPER12) As LongPtr
+
+        Dim xTemp As XLOPER12
+        Dim a As Double, b As Double, c As Double
+
+        If Not Bind(pA, btNumber, a, xTemp) Then GoTo ReturnResult
+        If Not Bind(pB, btNumber, b, xTemp) Then GoTo ReturnResult
+
+        ' Optional argument: default = 0
+        If pC.xltype = xltypeMissing Then
+            c = 0
+        ElseIf Not Bind(pC, btNumber, c, xTemp) Then
+            GoTo ReturnResult
+        End If
+
+        xTemp = GetXLNum12(a + b + c)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Direct pass-through of a range argument to an Excel built-in
+    ' Example: =TBXLL_SumArray(A1:A3) -> SUM(A1:A3)
+    [DllExport]
+    Public Function TBXLL_SumArray(ByRef pArr As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim args(0) As XLOPER12
+
+        args(0) = pArr
+
+        ' Call Excel's SUM function directly
+        If Excel12v(xlfSum, xTemp, 1, args) <> 0 Then
+            SetErrorResult xTemp
+        End If
+
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Single-argument pass-through to an Excel text built-in
+    ' Example: =TBXLL_Upper("abc") -> "ABC"
+    [DllExport]
+    Public Function TBXLL_Upper(ByRef pText As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim args(0) As XLOPER12
+
+        args(0) = pText
+
+        If Excel12v(xlfUpper, xTemp, 1, args) <> 0 Then
+            SetErrorResult xTemp
+        End If
+
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Returning an xltypeMulti array result from an Excel built-in (Ctrl-Shift-Enter)
+    ' Example: =TBXLL_Transpose(A1:C2) -> transposed array
+    [DllExport]
+    Public Function TBXLL_Transpose(ByRef pArr As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim args(0) As XLOPER12
+
+        args(0) = pArr
+
+        If Excel12v(xlfTranspose, xTemp, 1, args) <> 0 Then
+            SetErrorResult xTemp
+        End If
+
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Multi-argument pass-through to an Excel built-in
+    ' Example: =TBXLL_CountIf(A1:A10, ">5") -> COUNTIF(A1:A10, ">5")
+    [DllExport]
+    Public Function TBXLL_CountIf( _
+        ByRef pRange As XLOPER12, _
+        ByRef pCriteria As XLOPER12) As LongPtr
+
+        Dim xTemp As XLOPER12
+        Dim args(1) As XLOPER12
+
+        args(0) = pRange
+        args(1) = pCriteria
+
+        If Excel12v(xlfCountif, xTemp, 2, args) <> 0 Then
+            SetErrorResult xTemp
+        End If
+
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Demonstrates: Returning a specific Excel error code via GetXLErr12
+    ' Example: =TBXLL_AlwaysDiv0() -> #DIV/0!
+    [DllExport]
+    Public Function TBXLL_AlwaysDiv0() As LongPtr
+        Dim xTemp As XLOPER12
+        xTemp = GetXLErr12(xlerrDiv0)
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Domain validation with conditional GetXLErr12 vs GetXLNum12 return
+    ' Example: =TBXLL_SqrtChecked(-1) -> #NUM!  |  =TBXLL_SqrtChecked(4) -> 2
+    [DllExport]
+    Public Function TBXLL_SqrtChecked(ByRef pNum As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim n As Double
+
+        If Not Bind(pNum, btNumber, n, xTemp) Then GoTo ReturnResult
+
+        If n < 0 Then
+            xTemp = GetXLErr12(xlerrNum)
+        Else
+            xTemp = GetXLNum12(Sqr(n))
+        End If
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Two btNumber bindings with explicit divide-by-zero error path
+    ' Example: =TBXLL_Divide(10, 2) -> 5  |  =TBXLL_Divide(10, 0) -> #DIV/0!
+    [DllExport]
+    Public Function TBXLL_Divide( _
+        ByRef pA As XLOPER12, _
+        ByRef pB As XLOPER12) As LongPtr
+
+        Dim xTemp As XLOPER12
+        Dim a As Double, b As Double
+
+        If Not Bind(pA, btNumber, a, xTemp) Then GoTo ReturnResult
+        If Not Bind(pB, btNumber, b, xTemp) Then GoTo ReturnResult
+
+        If b = 0 Then
+            xTemp = GetXLErr12(xlerrDiv0)
+        Else
+            xTemp = GetXLNum12(a / b)
+        End If
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Returning xlerrNA for not-found semantics
+    ' Example: =TBXLL_NotFound() -> #N/A
+    [DllExport]
+    Public Function TBXLL_NotFound() As LongPtr
+        Dim xTemp As XLOPER12
+        xTemp = GetXLErr12(xlerrNA)
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Direct xltype inspection to enforce strict input type before binding
+    ' Example: =TBXLL_TextOnly("hi") -> "OK: hi"  |  =TBXLL_TextOnly(42) -> #VALUE!
+    [DllExport]
+    Public Function TBXLL_TextOnly(ByRef pText As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim s As String
+
+        ' Strict type enforcement: reject anything that is not a string
+        If (pText.xltype And xltypeStr) = 0 Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        ' Now safely bind as string (Bind will succeed)
+        If Not Bind(pText, btString, s, xTemp) Then GoTo ReturnResult
+
+        xTemp = GetXLString12("OK: " & s)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: xlFree on a successfully obtained result that is deliberately discarded
+    ' Example: =TBXLL_FailAfterSum(A1:A3) -> #VALUE!
+    [DllExport]
+    Public Function TBXLL_FailAfterSum(ByRef pArr As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim temp As XLOPER12
+        Dim args(0) As XLOPER12
+        Dim freeArgs(0) As XLOPER12
+
+        args(0) = pArr
+
+        If Excel12v(xlfSum, temp, 1, args) <> 0 Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        ' Discard result and return error intentionally
+        freeArgs(0) = temp
+        Excel12v xlFree, ByVal vbNullPtr, 1, freeArgs
+
+        xTemp = GetXLErr12(xlerrValue)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Demonstrates: GetXLString12 return mirroring the xlAddInManagerInfo12 registration string
+    ' Example: =TBXLL_AddInInfo() -> "tB XLL Add-in v2.0"
+    [DllExport]
+    Public Function TBXLL_AddInInfo() As LongPtr
+        Dim xTemp As XLOPER12
+        ' Match the string returned by xlAddInManagerInfo12
+        xTemp = GetXLString12("tB XLL Add-in v2.0")
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Optional btBool argument, xlfTranspose built-in preprocessing, btArray conversion with xlFree
+    ' Example: =TBXLL_Join({1,2;3,4}, FALSE) -> "1,2,3,4"  |  =TBXLL_Join({1,2;3,4}, TRUE) -> "1,3,2,4"
+    [DllExport]
+    Public Function TBXLL_Join(ByRef pRange As XLOPER12, ByRef pTranspose As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim arrV() As Variant
+        Dim transpose As Boolean
+
+        ' Optional argument: default = False
+        If pTranspose.xltype = xltypeMissing Then
+            transpose = False
+        ElseIf Not Bind(pTranspose, btBool, transpose, xTemp) Then
+            GoTo ReturnResult
+        End If
+
+        If transpose Then
+            ' Use Excel's internal Transpose function
+            ' This is not needed of course - could do same in array enumeration below
+            ' but just to show how to use built-ins along with array enumeration
+            Dim args(0) As XLOPER12
+            args(0) = pRange
+
+            If Excel12v(xlfTranspose, xTemp, 1, args) <> 0 Then
+                SetErrorResult xTemp
+                GoTo ReturnResult
+            End If
+            pRange = xTemp
+        End If
+
+        ' Convert to a variant array and process
+        If Not Bind(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
+
+        Dim r As Long, c As Long
+        Dim txt As String
+
+        For r = 0 To UBound(arrV, 1)
+            For c = 0 To UBound(arrV, 2)
+                Select Case VarType(arrV(r, c))
+                    Case vbDouble, vbLong, vbDate, vbError
+                        txt = txt & CStr(arrV(r, c)) & ","
+                    Case vbString, vbEmpty
+                        txt = txt & arrV(r, c) & ","
+                End Select
+            Next c
+        Next r
+
+        If Len(txt) > 1 Then txt = Left$(txt, Len(txt) - 1)
+
+        xTemp = GetXLString12(txt)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: btValue binding returning Empty variant for blank cells, IsEmpty detection
+    ' Example: =TBXLL_IsEmptyCell(A1) -> TRUE if A1 is blank, FALSE otherwise
+    [DllExport]
+    Public Function TBXLL_IsEmptyCell(ByRef cell As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim v As Variant
+
+        If Not Bind(cell, btValue, v, xTemp) Then GoTo ReturnResult
+
+        xTemp = GetXLBool12(IsEmpty(v))
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: btArray binding for two ranges, dimension validation, GetXLMulti12 array return
+    ' Example: =TBXLL_MultiplyArrays({1,2,3;4,5,6}, {2,2,2;3,3,3}) -> {2,4,6;12,15,18}  [Ctrl-Shift-Enter]
+    [DllExport]
+    Public Function TBXLL_MultiplyArrays( _
+        ByRef pArr1 As XLOPER12, _
+        ByRef pArr2 As XLOPER12) As LongPtr
+
+        Dim xTemp As XLOPER12
+        Dim arr1() As Variant
+        Dim arr2() As Variant
+
+        ' Bind both input arrays
+        If Not Bind(pArr1, btArray, arr1, xTemp) Then GoTo ReturnResult
+        If Not Bind(pArr2, btArray, arr2, xTemp) Then GoTo ReturnResult
+
+        ' Validate dimensions match
+        If UBound(arr1, 1) <> UBound(arr2, 1) Or _
+           UBound(arr1, 2) <> UBound(arr2, 2) Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        ' Build result variant array
+        Dim rows As Long = UBound(arr1, 1) + 1
+        Dim cols As Long = UBound(arr1, 2) + 1
+        Dim arrOut() As Variant
+        ReDim arrOut(rows - 1, cols - 1)
+
+        Dim r As Long, c As Long
+        For r = 0 To rows - 1
+            For c = 0 To cols - 1
+                If VarType(arr1(r, c)) = vbDouble And _
+                   VarType(arr2(r, c)) = vbDouble Then
+                    arrOut(r, c) = CDbl(arr1(r, c)) * CDbl(arr2(r, c))
+                Else
+                    arrOut(r, c) = CVErr(xlerrValue)
+                End If
+            Next c
+        Next r
+
+        ' Convert result array to XLOPER12
+        Dim xMulti As XLOPER12
+        xMulti = GetXLMulti12(arrOut)
+
+        If xMulti.xltype <> xltypeMulti Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        ' Do NOT call FreeXLMulti12 here - xlAutoFree12 will free the element array
+        xTemp = xMulti
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: GetXLMissing12 to pass an omitted optional argument to an Excel built-in
+    ' Example: =TBXLL_TestMissing(3.7) -> 4
+    [DllExport]
+    Public Function TBXLL_TestMissing(ByRef pNum As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim args(1) As XLOPER12
+        Dim xOut(0) As XLOPER12
+        Dim xFree(0) As XLOPER12
+
+        args(0) = pNum
+        args(1) = GetXLMissing12()  ' omit digits, Excel defaults to 0
+
+        If Excel12v(xlfRound, xOut(0), 2, args) <> 0 Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        xTemp = GetXLNum12(Xloper12NumValue(xOut(0)))
+        xFree(0) = xOut(0)
+        Excel12v xlFree, ByVal vbNullPtr, 1, xFree
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: btArray input, per-element string construction, GetXLMulti12 string array return
+    ' Example: =TBXLL_FormatArray({1,2;3,4}, "Item") -> {"Item_1","Item_2";"Item_3","Item_4"}  [Ctrl-Shift-Enter]
+    [DllExport]
+    Public Function TBXLL_FormatArray( _
+        ByRef pRange As XLOPER12, _
+        ByRef pPrefix As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim arrV() As Variant
+        Dim prefix As String
+
+        If Not Bind(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
+        If Not Bind(pPrefix, btString, prefix, xTemp) Then GoTo ReturnResult
+
+        Dim rows As Long = UBound(arrV, 1) + 1
+        Dim cols As Long = UBound(arrV, 2) + 1
+        Dim arrOut() As Variant
+        ReDim arrOut(rows - 1, cols - 1)
+
+        Dim r As Long, c As Long
+        For r = 0 To rows - 1
+            For c = 0 To cols - 1
+                Select Case VarType(arrV(r, c))
+                    Case vbDouble, vbLong
+                        arrOut(r, c) = prefix & "_" & CStr(arrV(r, c))
+                    Case vbString
+                        arrOut(r, c) = prefix & "_" & arrV(r, c)
+                    Case Else
+                        arrOut(r, c) = CVErr(xlerrValue)
+                End Select
+            Next c
+        Next r
+
+        Dim xMulti As XLOPER12
+        xMulti = GetXLMulti12(arrOut)
+
+        If xMulti.xltype <> xltypeMulti Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        ' Do NOT call FreeXLMulti12 here - xlAutoFree12 will free the element array
+        xTemp = xMulti
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: btDate binding for Excel serial date input, direct double arithmetic on date values
+    ' Example: =TBXLL_AddDays(A1, 30) -> serial date 30 days after A1
+    [DllExport]
+    Public Function TBXLL_AddDays( _
+        ByRef pDate As XLOPER12, _
+        ByRef pDays As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim dt As Double
+        Dim days As Double
+
+        If Not Bind(pDate, btDate, dt, xTemp) Then GoTo ReturnResult
+        If Not Bind(pDays, btNumber, days, xTemp) Then GoTo ReturnResult
+
+        ' Excel dates are stored as doubles - add days directly
+        xTemp = GetXLNum12(dt + days)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: btArray enumeration with VarType discrimination, skipping errors and empty cells
+    ' Example: =TBXLL_SumArray2({1,2,3}) -> 6
+    [DllExport]
+    Public Function TBXLL_SumArray2(ByRef pRange As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim arrV() As Variant
+
+        If Not Bind(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
+
+        Dim total As Double
+        Dim r As Long, c As Long
+
+        For r = 0 To UBound(arrV, 1)
+            For c = 0 To UBound(arrV, 2)
+                Select Case VarType(arrV(r, c))
+                    Case vbDouble
+                        total = total + arrV(r, c)
+                    Case vbLong
+                        total = total + CDbl(arrV(r, c))
+                    Case vbError
+                    Case vbEmpty
+                    Case Else
+                End Select
+            Next c
+        Next r
+
+        xTemp = GetXLNum12(total)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: btSingleCellRef validation, btValue extraction, GetXLVariant12 type-preserving return
+    ' Example: =TBXLL_CellValue(A1) -> value of A1  |  =TBXLL_CellValue(A1:B2) -> #VALUE!
+    [DllExport]
+    Public Function TBXLL_CellValue(ByRef pRef As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim v As Variant
+
+        ' Validate is a single cell reference
+        If Not Bind(pRef, btSingleCellRef, v, xTemp) Then GoTo ReturnResult
+
+        ' Extract the variant value
+        If Not Bind(pRef, btValue, v, xTemp) Then GoTo ReturnResult
+
+        xTemp = GetXLVariant12(v)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+
+    ' Demonstrates: Chaining Excel built-in output (xlfSum) into twinBASIC array processing and GetXLMulti12 array return
+    ' Example: =TBXLL_NormalizeArray({4,9,16,25}) -> {0.0741,0.1667,0.2963,0.4630}  [Ctrl-Shift-Enter]
+    [DllExport]
+    Public Function TBXLL_NormalizeArray(ByRef pRange As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim arrV() As Variant
+
+        If Not Bind(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
+
+        ' Get SUM of input via Excel built-in
+        Dim args(0) As XLOPER12
+        Dim xSum(0) As XLOPER12
+        Dim xFree(0) As XLOPER12
+
+        args(0) = pRange
+        If Excel12v(xlfSum, xSum(0), 1, args) <> 0 Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        Dim total As Double = Xloper12NumValue(xSum(0))
+        xFree(0) = xSum(0)
+        Excel12v xlFree, ByVal vbNullPtr, 1, xFree
+
+        If total = 0 Then
+            xTemp = GetXLErr12(xlerrDiv0)
+            GoTo ReturnResult
+        End If
+
+        ' Build normalized variant array
+        Dim rows As Long = UBound(arrV, 1) + 1
+        Dim cols As Long = UBound(arrV, 2) + 1
+        Dim arrOut() As Variant
+        ReDim arrOut(rows - 1, cols - 1)
+
+        Dim r As Long, c As Long
+        For r = 0 To rows - 1
+            For c = 0 To cols - 1
+                Select Case VarType(arrV(r, c))
+                    Case vbDouble, vbLong
+                        arrOut(r, c) = CDbl(arrV(r, c)) / total
+                    Case Else
+                        arrOut(r, c) = CVErr(xlerrValue)
+                End Select
+            Next c
+        Next r
+
+        Dim xMulti As XLOPER12
+        xMulti = GetXLMulti12(arrOut)
+
+        If xMulti.xltype <> xltypeMulti Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        ' Do NOT call FreeXLMulti12 here - xlAutoFree12 will free the element array
+        xTemp = xMulti
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Demonstrates: btSingleCellRef location extraction
+    ' Example: =TBXLL_CellAddress(A1) -> '$A$1'  |  =TBXLL_CellAddress(A1:B2) -> #VALUE!
+    [DllExport]
+    Public Function TBXLL_CellAddress(ByRef pRef As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim v As Variant
+        ' Validate is a single cell reference
+        If Not Bind(pRef, btSingleCellRef, v, xTemp) Then GoTo ReturnResult
+        
+        Dim args(1) As XLOPER12
+
+        args(0) = GetXLVariant12(v(0)) 'row
+        args(1) = GetXLVariant12(v(1)) 'column
+
+        ' Call Excel's Address function directly
+        If Excel12v(xlfAddress, xTemp, 2, args) <> 0 Then
+            SetErrorResult xTemp
+        End If
+        
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Demonstrates: xlSheetNm callback to extract sheet name from a cell reference argument
+    ' Example: =TBXLL_SheetName(A1) -> "[Book1.xlsx]Sheet1"
+    ' Note: Registered with MacroEquivalent = True to formally support xlSheetNm
+    [DllExport]
+    Public Function TBXLL_SheetName(ByRef pRef As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim xArgs(0) As XLOPER12
+        Dim xOut(0) As XLOPER12
+        Dim xFree(0) As XLOPER12
+
+        ' pRef must be a cell reference so we can extract the sheet context
+        xArgs(0) = pRef
+        If Excel12v(xlSheetNm, xOut(0), 1, xArgs) <> 0 Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        xTemp = GetXLString12(Xloper12StrValue(xOut(0)))
+
+        xFree(0) = xOut(0)
+        Excel12v xlFree, ByVal vbNullPtr, 1, xFree
+
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Demonstrates: Zero-argument Excel built-in call; volatility via registration not function code
+    ' Example: =TBXLL_Now() -> current date/time
+    ' Note: Volatile functions cannot be registered with .SafeThread = True; Use .Volatile = True
+    [DllExport]
+    Public Function TBXLL_Now() As LongPtr
+        Dim xTemp As XLOPER12
+        If Excel12v(xlfNow, xTemp, 0) <> 0 Then
+            SetErrorResult xTemp
+        End If
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Demonstrates: Static variable persistence across recalculations with volatile registration (udf.Volatile) not function code
+    ' Example: =TBXLL_RecalcCounter() -> increments on each recalc
+    ' Note: Volatile functions cannot be registered with .SafeThread = True; Use .Volatile = True
+    ' Note: This must use the alternate static memory management model becuase of the state 
+    ' persistence of "counter" across calls
+    [DllExport]
+    Public Function TBXLL_RecalcCounter() As LongPtr
+        Static xResult As XLOPER12
+        Static counter As Long
+
+        counter = counter + 1
+        xResult = GetXLInt12(counter)
+
+        Return VarPtr(xResult)
+    End Function
+    
+End Module

@@ -219,10 +219,10 @@ Module Helpers
         xMulti.xltype = xltypeNil
     End Sub
     
-    ' Allocates a heap XLOPER12 with xlbitDLLFree set for thread-safe UDF return
-    ' Returns 0 if allocation fails
-    ' Caller must NOT free - Excel calls xlAutoFree12 when done
-    Public Function AllocXLOPER12Result(ByRef x As XLOPER12) As LongPtr
+    ' Allocates a heap XLOPER12 with xlbitDLLFree set for thread-safe UDF return.
+    ' Excel calls xlAutoFree12 to free the allocation when done with the result.
+    ' Caller must NOT free - ownership transfers to Excel.
+    Public Function AllocResultToCaller(ByRef x As XLOPER12) As LongPtr
         Dim pResult As LongPtr
         pResult = GlobalAlloc(GPTR, LenB(Of XLOPER12))
         If pResult = 0 Then Return 0
@@ -387,16 +387,10 @@ Module Helpers
                     Exit Function
                 End If
                 CoerceToSingleCellRef = False
-                Exit Function
-            Case xltypeRef
+            Case xltypeRef, xltypeStr
                 CoerceToSingleCellRef = False
-                Exit Function
-            Case xltypeStr
-                CoerceToSingleCellRef = False
-                Exit Function
             Case Else
                 CoerceToSingleCellRef = False
-                Exit Function
         End Select
     End Function
 

@@ -41,15 +41,11 @@ Public Class UDF
     Private mFuncHelp As String
     Private mVolatile As Boolean
     Private mThreadSafe As Boolean
+    Private mMacroEquivalent As Boolean
     Private oArguments As Collection
     ' def() must persist for the lifetime of the registration (Excel retains pointers)
     Private def() As XLOPER12
-    
-    '[Description("Controls whether the function is registered with macro-sheet equivalent privileges, allowing it to call macro-only Excel functions such as xlSheetNm and xlfCaller. Mutually exclusive with ThreadSafe.")]
-    'u.MacroEquivalent = True  ' adds # to type string during registration
-    ' If MacroEquivalent Then
-        ' typeStr = typeStr & "#"
-    ' End If
+    Private mRegistered As Boolean ' Private variable to track registration state to prevent double (non-fatal) unregister
     
     [Description("The symbol exported from your DLL/XLL - must match the name of the DLL procedure that Excel will call.")]
     Public Property Let ProcName(ByVal v As String)
@@ -73,6 +69,14 @@ Public Class UDF
     End Property
     Public Property Get Volatile() As Boolean
         Volatile = mVolatile
+    End Property
+    
+    [Description("Controls whether the function is registered with macro-sheet equivalent privileges, allowing it to call macro-only Excel functions such as xlSheetNm and xlfCaller. Mutually exclusive with ThreadSafe.")]
+    Public Property Let MacroEquivalent(ByVal v As Boolean)
+        mMacroEquivalent = v
+    End Property
+    Public Property Get MacroEquivalent() As Boolean
+        MacroEquivalent = mMacroEquivalent
     End Property
     
     [Description("Controls whether the function is registered as thread-safe, allowing Excel to call it concurrently during multithreaded recalculation. Requires dynamic memory allocation pattern; incompatible with Static result variables.")]
@@ -159,8 +163,10 @@ Public Class UDF
         
         ' Build the type-text string
         txt = "U" & String(numArgs, "U")
+        ' Handle special registration options
         If Me.Volatile Then txt = txt & "!"
         If Me.ThreadSafe Then txt = txt & "$"
+        If Me.MacroEquivalent Then txt = txt & "#"
         def(2) = GetXLString12(txt)
         
         def(3) = GetXLString12(Me.FuncText)
@@ -196,12 +202,14 @@ Public Class UDF
         def(numFixed + numArgs) = GetXLString12(vbNullString)
         
         Excel12v xlfRegister, ByVal vbNullPtr, UBound(def) + 1, def
+        mRegistered = True
     End Sub
     
     [Description("Unregisters the UDF for use as a worksheet function.")]
     Public Sub UnRegister()
         Dim xDll(0) As XLOPER12
-
+        
+        If Not mRegistered Then Exit Sub
         ' Get this XLL's name (DO NOT xlFree this)
         Excel12v xlGetName, xDll(0), 0
 
@@ -226,6 +234,7 @@ Public Class UDF
             Me.UnRegister
             Me.Visible = True
         End If
+        mRegistered = False
     End Sub
     
     Private Sub Class_Initialize()

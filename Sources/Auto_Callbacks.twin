@@ -1,5 +1,4 @@
-
-Module MainModule
+Module Auto_Callbacks
     
     Private udfs As New Collection
 
@@ -28,6 +27,19 @@ Module MainModule
             .FuncText = "TBXLL_CellValue"
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: btSingleCellRef validation, btValue extraction"
+            .Visible = True
+            .Volatile = False
+            .AddArgument Name:="cell", Help:="cell range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_CellAddress"
+            .FuncText = "TBXLL_CellAddress"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: btSingleCellRef location extraction"
             .Visible = True
             .Volatile = False
             .AddArgument Name:="cell", Help:="cell range"
@@ -126,6 +138,7 @@ Module MainModule
             .FuncHelp = "Demo: chaining Excel built-ins with intermediate xlFree"
             .Visible = True
             .Volatile = False
+            .ThreadSafe = True
             .AddArgument Name:="range", Help:="cells to consider average"
             .Register
         End With
@@ -279,6 +292,7 @@ Module MainModule
             .FuncHelp = "Demo: xlSheetNm callback from cell reference"
             .Visible = True
             .Volatile = False
+            .MacroEquivalent = True
             .AddArgument Name:="range", Help:="range"
             .Register
         End With
@@ -339,60 +353,6 @@ Module MainModule
         
         Set udf = New UDF
         With udf
-            .ProcName = "TBXLL_DynamicString"
-            .FuncText = "TBXLL_DynamicString"
-            .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
-            .Visible = True
-            .Volatile = False
-            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
-            .AddArgument Name:="range", Help:="range"
-            .Register
-        End With
-        udfs.Add udf
-        
-        Set udf = New UDF
-        With udf
-            .ProcName = "TBXLL_DynamicArray"
-            .FuncText = "TBXLL_DynamicArray"
-            .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
-            .Visible = True
-            .Volatile = False
-            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
-            .AddArgument Name:="range", Help:="range"
-            .Register
-        End With
-        udfs.Add udf
-        
-        Set udf = New UDF
-        With udf
-            .ProcName = "TBXLL_DynamicNumber"
-            .FuncText = "TBXLL_DynamicNumber"
-            .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
-            .Visible = True
-            .Volatile = False
-            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
-            .Register
-        End With
-        udfs.Add udf
-        
-        Set udf = New UDF
-        With udf
-            .ProcName = "TBXLL_DynamicBoolean"
-            .FuncText = "TBXLL_DynamicBoolean"
-            .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
-            .Visible = True
-            .Volatile = False
-            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
-            .Register
-        End With
-        udfs.Add udf
-        
-        Set udf = New UDF
-        With udf
             .ProcName = "TBXLL_SlowCalcUnsafe"
             .FuncText = "TBXLL_SlowCalcUnsafe"
             .Category = "tB XLL UDF Add-In"
@@ -414,6 +374,34 @@ Module MainModule
             .Volatile = False
             .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
             .AddArgument Name:="number", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_NumberName"
+            .FuncText = "TBXLL_NumberName"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
+            .Visible = True
+            .Volatile = False
+            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .AddArgument Name:="range", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_RomanNumeral"
+            .FuncText = "TBXLL_RomanNumeral"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
+            .Visible = True
+            .Volatile = False
+            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .AddArgument Name:="range", Help:="range"
             .Register
         End With
         udfs.Add udf
@@ -483,7 +471,7 @@ Module MainModule
         Dim w As Long
         CopyMemory w, xIntAction(0).val(0), LenB(w)
         If w = 1 Then
-            xInfo(0) = GetXLString12("tB XLL Add-in v3.0")
+            xInfo(0) = GetXLString12("tB XLL Add-in v4.0")
         Else
             xInfo(0).xltype = xltypeErr
             CopyMemory xInfo(0).val(0), xlerrValue, LenB(Of Long)
@@ -553,6 +541,7 @@ Module MainModule
         Static xResult As XLOPER12
         ' Nothing to do - all initialization is handled in xlAutoOpen
         ' Could be used to show a welcome message or first-run configuration dialog
+        'MsgBox("hi from xlAutoAdd")
         xResult.xltype = xltypeNil
         Return VarPtr(xResult)
     End Function
