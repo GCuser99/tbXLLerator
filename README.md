@@ -35,22 +35,29 @@ The framework handles the low-level XLOPER12 memory layout, argument binding, ty
 
 ## Quick Example
 
+This shows a typical UDF callback:
 ```vba
-    [DllExport]
-    ' Converts a number to its Roman Numeral representation - thread-safe
-    Public Function TBXLL_RomanNumeral(pIn As XLOPER12) As LongPtr
-        Dim num As Long
-        Dim xTemp As XLOPER12
-        ' Convert the input XLOPER12 to a number
-        If Bind(pIn, btNumber, num, xTemp) Then
-            ' Do the calculations and convert string to XLOPER12 for return to worksheet
-            xTemp = GetXLString12(num_getroman(num)) 'calls num_getroman that does all the work
-        End If
-        Return AllocResultToCaller(xTemp)
-    End Function
+[DllExport]
+' Converts a number to its Roman Numeral representation - thread-safe
+Public Function TBXLL_RomanNumeral(pIn As XLOPER12) As LongPtr
+    Dim num As Long
+    Dim xTemp As XLOPER12
+    ' Convert the input XLOPER12 to a number
+    If Bind(pIn, btNumber, num, xTemp) Then
+        ' Do the calculations and convert string to XLOPER12 for return to worksheet
+        xTemp = GetXLString12(num_getroman(num)) 'num_getroman does all the work (written by Jon Johnson)
+    End If
+    Return AllocResultToCaller(xTemp)
+End Function
 ```
-
+Here is the corresponding (un)registration pattern:
 ```vba
+Private udfs As New Collection
+
+[DllExport]
+Public Function xlAutoOpen() As Long
+    ' Required, handles registration
+    Dim udf As UDF
     Set udf = New UDF
     With udf
         .ProcName = "TBXLL_RomanNumeral"
@@ -64,6 +71,18 @@ The framework handles the low-level XLOPER12 memory layout, argument binding, ty
         .Register
     End With
     udfs.Add udf
+    ' ... repeat pattern above for each UDF
+    xlAutoOpen = 1
+End Function
+
+[DllExport]
+Public Function xlAutoClose() As Long
+    Dim udf As UDF
+    For Each udf In udfs
+        udf.UnRegister
+    Next udf
+    xlAutoClose = 1
+End Function
 ```
 
 ## Architecture
