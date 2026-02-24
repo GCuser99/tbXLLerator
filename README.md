@@ -29,6 +29,7 @@ The framework handles the low-level XLOPER12 memory layout, argument binding, ty
 
 - [twinBASIC](https://twinbasic.com) (64-bit)
 - Microsoft Excel (64-bit)
+- Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF/blob/main/ExcelSDK.twin)
 
 ---
 
@@ -40,8 +41,9 @@ The framework handles the low-level XLOPER12 memory layout, argument binding, ty
 |--------|---------|
 | `ExcelSDK` | XLOPER12 struct, constants, enums, Excel12v declaration |
 | `Helpers` | Bind framework, coercion helpers, GetXL* helpers, memory management |
-| `MainModule` | xlAutoOpen, xlAutoRemove, xlAutoFree12, xlAddInManagerInfo12 |
-| `Usage` | Demo UDFs illustrating every supported pattern |
+| `Auto_Callbacks` | xlAutoOpen, xlAutoRemove, xlAutoFree12, xlAddInManagerInfo12 |
+| `UDF` | Convenience wrapper for UDF registration |
+| `Demos` | Demo UDFs illustrating every supported pattern |
 
 ### XLOPER12 Layout (twinBASIC 64-bit)
 
@@ -61,21 +63,9 @@ In the C SDK, `xltype` precedes `val`. In twinBASIC, `val` precedes `xltype`. Al
 
 Two patterns are supported. Pattern 2 is preferred for all new UDFs.
 
-### Pattern 1: Static (Non-thread-safe)
-```vb
-[DllExport]
-Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
-    Static xResult As XLOPER12
-    Dim n As Double
-    If Not Bind(pN, btNumber, n, xResult) Then Return VarPtr(xResult)
-    xResult = GetXLNum12(n * 2)
-    Return VarPtr(xResult)
-End Function
-```
-
 Use when the UDF maintains persistent state, calls non-thread-safe Excel APIs, or is volatile. Register with `ThreadSafe = False`.
 
-### Pattern 2: Dynamic / xlbitDLLFree (Thread-safe, preferred)
+### Pattern 1: Dynamic / xlbitDLLFree (Thread-safe, preferred)
 ```vb
 [DllExport]
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
@@ -87,8 +77,19 @@ ReturnResult:
     Return AllocXLOPER12Result(xTemp)
 End Function
 ```
-
 Each call allocates an independent heap XLOPER12. Excel calls `xlAutoFree12` when done. Register with `ThreadSafe = True` to enable concurrent recalculation.
+
+### Pattern 2: Static (Non-thread-safe)
+```vb
+[DllExport]
+Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
+    Static xResult As XLOPER12
+    Dim n As Double
+    If Not Bind(pN, btNumber, n, xResult) Then Return VarPtr(xResult)
+    xResult = GetXLNum12(n * 2)
+    Return VarPtr(xResult)
+End Function
+```
 
 ---
 
