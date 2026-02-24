@@ -244,6 +244,7 @@ Public Class UDF
     Private Sub Class_Initialize()
         Set oArguments = New Collection
         mVisible = True
+        mThreadSafe = True 'preferred except for Volatile UDFs
     End Sub
     
     Private Sub Class_Terminate()
