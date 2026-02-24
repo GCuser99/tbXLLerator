@@ -1,36 +1,14 @@
+[Description("This Module contains UDF callbacks")]
 Module Demos
     
     '------------------------------------------------------------------------------
     ' XLL MEMORY MANAGEMENT STRATEGY
     '
     ' Excel XLL UDFs must return a pointer to an XLOPER12. This XLL uses two
-    ' memory management patterns. Pattern 2 (dynamic) is preferred for all new
-    ' UDFs unless a specific reason requires Pattern 1 (static).
-    '
-    '
-    ' PATTERN 1: STATIC RESULT (Non-thread-safe UDFs)
-    ' ------------------------------------------------
-    '   [DllExport]
-    '   Public Function TBXLL_Example(...) As LongPtr
-    '       Static xResult As XLOPER12   ' persists for XLL lifetime
-    '       ...
-    '       Return VarPtr(xResult)
-    '   End Function
-    '
-    ' Excel guarantees non-thread-safe UDFs are never executed concurrently,
-    ' so returning a pointer to static storage is safe. However this pattern
-    ' prevents Excel from calling the function concurrently across cells,
-    ' which limits performance on large models.
-    '
-    ' Use ONLY when:
-    '   - UDF maintains persistent state across calls (e.g. TBXLL_RecalcCounter)
-    '   - UDF calls non-thread-safe Excel APIs (e.g. xlSheetNm, xlfCaller)
-    '   - UDF is volatile (Excel serializes volatile functions anyway)
-    '
-    ' Register with ThreadSafe = False (default).
-    '
-    '
-    ' PATTERN 2: DYNAMIC ALLOCATION WITH xlbitDLLFree (Preferred)
+    ' memory management patterns. Pattern 1 (dynamic) is preferred for all new
+    ' UDFs unless a specific reason requires Pattern 2 (static).
+    
+    ' PATTERN 1: DYNAMIC ALLOCATION WITH xlbitDLLFree (Preferred)
     ' ------------------------------------------------------------
     '   [DllExport]
     '   Public Function TBXLL_Example(...) As LongPtr
@@ -45,7 +23,7 @@ Module Demos
     ' cells during multithreaded recalculation, which can dramatically improve
     ' performance on large models with many cells calling the same UDF.
     '
-    ' Use for all pure functions with no shared state and no Excel API calls.
+    ' Use for all functions with no shared state and no Excel API calls.
     ' Register with ThreadSafe = True.
     '
     '
@@ -86,6 +64,26 @@ Module Demos
     ' only calls it when xlbitDLLFree is set on a returned XLOPER12.
     '
     '
+    ' PATTERN 2: STATIC RESULT (Non-thread-safe UDFs)
+    ' ------------------------------------------------
+    '   [DllExport]
+    '   Public Function TBXLL_Example(...) As LongPtr
+    '       Static xResult As XLOPER12   ' persists for XLL lifetime
+    '       ...
+    '       Return VarPtr(xResult)
+    '   End Function
+    '
+    ' Excel guarantees non-thread-safe UDFs are never executed concurrently,
+    ' so returning a pointer to static storage is safe. However this pattern
+    ' prevents Excel from calling the function concurrently across cells,
+    ' which limits performance on large models.
+    '
+    ' Use ONLY when:
+    '   - UDF maintains persistent state across calls (e.g. TBXLL_RecalcCounter)
+    '
+    ' Register with ThreadSafe = False (default).
+    '
+    '
     ' WARNING: DO NOT MIX PATTERNS
     ' ----------------------------
     ' Each UDF must use exactly one pattern:
@@ -94,6 +92,7 @@ Module Demos
     '   - Do NOT call FreeXLMulti12 before AllocResultToCaller on array results
     '     (xlAutoFree12 handles element array cleanup for thread-safe UDFs)
     '------------------------------------------------------------------------------
+    
     
     ' Demonstrates: Static result pattern for single-threaded use, intentionally thread-unsafe for comparison
     ' Example: =TBXLL_SlowCalcUnsafe(2) -> result of expensive calculation
@@ -128,8 +127,6 @@ Module Demos
     ReturnResult:
         Return AllocResultToCaller(xTemp)
     End Function
-    
-
     
     ' Demonstrates: Chaining multiple Excel built-in calls with intermediate xlFree cleanup
     ' Example: =TBXLL_Average(A1:A4) -> AVERAGE(A1:A4)

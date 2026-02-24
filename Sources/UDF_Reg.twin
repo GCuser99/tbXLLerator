@@ -241,6 +241,10 @@ Public Class UDF
         Set oArguments = New Collection
         mVisible = True
     End Sub
+    
+    Private Sub Class_Terminate()
+        Set oArguments = Nothing
+    End Sub
 
 End Class
 

@@ -1,3 +1,4 @@
+[Description("This Module contains convenient wrappers for the Jon Johnson's ExcelSDK")]
 Module Helpers
     Option Explicit
     
@@ -235,7 +236,7 @@ Module Helpers
     ' Core coercion helpers (XLOPER12 -> typed)
     '===========================================================
 
-    Private Function CoerceToBool( _
+    Public Function CoerceToBool( _
         ByRef pIn As XLOPER12, _
         ByRef outBool As Boolean) As Boolean
 
@@ -277,7 +278,7 @@ Module Helpers
         End Select
     End Function
 
-    Private Function CoerceToNumber( _
+    Public Function CoerceToNumber( _
         ByRef pIn As XLOPER12, _
         ByRef outNum As Double) As Boolean
 
@@ -319,7 +320,7 @@ Module Helpers
         End Select
     End Function
 
-    Private Function CoerceToString( _
+    Public Function CoerceToString( _
         ByRef pIn As XLOPER12, _
         ByRef outStr As String) As Boolean
 
@@ -365,7 +366,7 @@ Module Helpers
         End Select
     End Function
 
-    Private Function CoerceToSingleCellRef( _
+    Public Function CoerceToSingleCellRef( _
         ByRef pIn As XLOPER12, _
         ByRef outRef As XLREF12) As Boolean
 
@@ -394,7 +395,7 @@ Module Helpers
         End Select
     End Function
 
-    Private Function CoerceToDate( _
+    Public Function CoerceToDate( _
         ByRef pIn As XLOPER12, _
         ByRef outDate As Double) As Boolean
 
@@ -415,7 +416,7 @@ Module Helpers
         CoerceToDate = True
     End Function
     
-    Private Function CoerceToArray( _
+    Public Function CoerceToArray( _
         ByRef pIn As XLOPER12, _
         ByRef outArr() As Variant) As Boolean
 

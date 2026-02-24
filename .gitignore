@@ -4,6 +4,14 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # User-specific files
+strings.xlsx
+speed.xlsx
+array.xlsx
+debug.xlsx
+multithread.xlsx
+tbXLLerator_v*.twinproj
+
+# User-specific files
 *.rsuser
 *.suo
 *.user

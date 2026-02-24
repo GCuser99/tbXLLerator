@@ -1,9 +1,11 @@
+[Description("This Module contains UDF callbacks written by Jon Johnson")]
 Module Demos_Jons
     'General API defs; you don't need the following if you use WinDevLib
     Private Const MAXLONGLONG As LongLong = 9223372036854775807^
     Private Const MAXLONG  = &H7fffffff  ' winnt
 
     [DllExport]
+    ' ' Converts a number to its written text form - thread-safe registration
     Public Function TBXLL_NumberName(pIn As XLOPER12) As LongPtr
         Dim num As String
         Dim xTemp As XLOPER12
@@ -16,13 +18,14 @@ Module Demos_Jons
     End Function
 
     [DllExport]
+    ' Converts a number to its Roman Numeral representation - thread-safe registration
     Public Function TBXLL_RomanNumeral(pIn As XLOPER12) As LongPtr
         Dim num As Long
         Dim xTemp As XLOPER12
         ' Convert the input XLOPER12 to a number
         If Bind(pIn, btNumber, num, xTemp) Then
 			' Do the calculations and convert string to XLOPER12 for return to worksheet
-			xTemp = GetXLString12(num_getroman(num))
+			xTemp = GetXLString12(Num_getroman(num))
 		End If
         Return AllocResultToCaller(xTemp)
     End Function
@@ -223,7 +226,7 @@ Module Demos_Jons
         ConvertNumberToText = szTR
     End Function
 
-    Private Function num_getroman(nArabicValue As Long) As String
+    Private Function Num_getroman(nArabicValue As Long) As String
 
        Dim nThousands As Long
        Dim nFiveHundreds As Long
@@ -289,7 +292,7 @@ Module Demos_Jons
           tmp = tmp & String(nFives, "V") & String(nOnes, "I")
        End If
    
-       num_getroman = tmp
+       Num_getroman = tmp
    
     End Function
     

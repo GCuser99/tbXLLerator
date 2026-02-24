@@ -1,3 +1,4 @@
+[Description("This Module contains all xlAuto callbacks used for (un)registration")]
 Module Auto_Callbacks
     
     Private udfs As New Collection
@@ -383,7 +384,7 @@ Module Auto_Callbacks
             .ProcName = "TBXLL_NumberName"
             .FuncText = "TBXLL_NumberName"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: heap allocation with xlbitDLLFree and xlAutoFree12"
+            .FuncHelp = "Demo: Converts"
             .Visible = True
             .Volatile = False
             .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
@@ -402,28 +403,6 @@ Module Auto_Callbacks
             .Volatile = False
             .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
             .AddArgument Name:="range", Help:="range"
-            .Register
-        End With
-        udfs.Add udf
-        
-        Set udf = New UDF
-        With udf
-            .ProcName = "TBXLLUDFVSpeed"
-            .FuncText = "VSpeed"
-            .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Returns Virtual Speed in m/s"
-            .Visible = True
-            .Volatile = False
-            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
-            .AddArgument Name:="Power", Help:="Power in watts"
-            .AddArgument Name:="SpeedInit", Help:="Initial speed in m/s"
-            .AddArgument Name:="Grade", Help:="Grade in percent"
-            .AddArgument Name:="Mass", Help:="Mass in kg"
-            .AddArgument Name:="RhoAir", Help:="Air density in kg/m^3"
-            .AddArgument Name:="Crr", Help:="Coefficient of rolling resitance"
-            .AddArgument Name:="CdA", Help:="Drag coefficient in m^2"
-            .AddArgument Name:="DeltaTime", Help:="Delta time is seconds"
-            .AddArgument Name:="SteadyState", Help:="True if to assume acceleration=0"
             .Register
         End With
         udfs.Add udf
@@ -530,7 +509,6 @@ Module Auto_Callbacks
         ' Free the XLOPER12 struct itself
         GlobalFree pResult
     End Sub
-    
     
     ' Called by Excel when the user adds the XLL via the Add-in Manager dialog.
     ' Note: xlAutoOpen is always called first, so xlAutoAdd is only needed for
