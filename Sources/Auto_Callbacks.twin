@@ -2,6 +2,7 @@
 Module Auto_Callbacks
     
     Private udfs As New Collection
+    Private Const addinLongName As String = "tbXLLerator Add-in v0.1"
 
     [DllExport]
     Public Function xlAutoOpen() As Long
@@ -450,7 +451,7 @@ Module Auto_Callbacks
         Dim w As Long
         CopyMemory w, xIntAction(0).val(0), LenB(w)
         If w = 1 Then
-            xInfo(0) = GetXLString12("tB XLL Add-in v4.0")
+            xInfo(0) = GetXLString12(addinLongName)
         Else
             xInfo(0).xltype = xltypeErr
             CopyMemory xInfo(0).val(0), xlerrValue, LenB(Of Long)
