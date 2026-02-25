@@ -70,7 +70,6 @@ Public Function xlAutoOpen() As Long
     Set udf = New UDF
     With udf
         .ProcName = "TBXLL_RomanNumeral"
-        .FuncText = "TBXLL_RomanNumeral"
         .Category = "tB XLL UDF Add-In"
         .FuncHelp = "Converts a number to its Roman Numeral representation"
         .Volatile = False
@@ -298,7 +297,6 @@ UDFs are registered in `xlAutoOpen` using the `UDF` class:
 Dim udf As New UDF
 With udf
     .ProcName    = "TBXLL_Multiply"
-    .FuncText    = "TBXLL_Multiply"
     .Category    = "My Add-In"
     .FuncHelp    = "Demo: btNumber binding, scalar return"
     .Volatile    = False
