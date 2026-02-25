@@ -318,7 +318,7 @@ End With
 | `ThreadSafe` | Boolean | Adds `$` to type string, mutually exclusive with MacroEquivalent |
 | `MacroEquivalent` | Boolean | Adds `#` to type string, enables macro-only API calls |
 
-| Methods | Arguments | Notes |
+| Method | Arguments | Notes |
 |----------|------|-------|
 | `AddArgument` | name, help | Adds a new argument definition to the UDF |
 | `Register` | N/A | Registers the UDF for use as a worksheet function |
