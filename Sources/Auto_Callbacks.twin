@@ -57,7 +57,7 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: hidden from the Excel Function Wizard"
             .Visible = False
             .Volatile = False
-            .ThreadSafe = True
+            .ThreadSafe = False
             .AddArgument Name:="cell", Help:="cell range"
             .Register
         End With

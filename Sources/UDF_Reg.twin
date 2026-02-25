@@ -151,8 +151,15 @@ Public Class UDF
         Dim txt As String
         
         ' First some compatibility checks...
+        ' Handle mutually exclusive options
         If Me.Volatile Then Me.ThreadSafe = False
         If Me.MacroEquivalent Then Me.ThreadSafe = False
+        ' Make sure that both Me.ProcName and Me.FuncHelp are defined
+        If Me.ProcName = vbNullString And Me.FuncHelp <> vbNullString Then
+            Me.ProcName = Me.FuncHelp
+        ElseIf Me.FuncHelp = vbNullString And Me.ProcName <> vbNullString Then
+            Me.FuncHelp = Me.ProcName
+        End If
         
         ' Get this XLL's name (DO NOT xlFree this)
         Excel12v xlGetName, xDll(0), 0, dummy
