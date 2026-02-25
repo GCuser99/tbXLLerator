@@ -2,7 +2,7 @@
 Module Auto_Callbacks
     
     Private udfs As New Collection
-    Private Const addinLongName As String = "tbXLLerator Add-in"
+    Private Const addinLongName As String = "tbXLLerator Add-in v00.1"
 
     [DllExport]
     Public Function xlAutoOpen() As Long
