@@ -172,7 +172,7 @@ On failure, `Bind` sets `xResult` to `#VALUE!` automatically. Supported bind typ
 
 ## More Examples
 
-### Scalar numeric UDF
+### Scalar numeric
 ```vba
 ' Example: =TBXLL_Multiply(3, 4) -> 12
 [DllExport]
