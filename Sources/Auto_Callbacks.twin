@@ -2,7 +2,7 @@
 Module Auto_Callbacks
     
     Private udfs As New Collection
-    Private Const addinLongName As String = "tbXLLerator Add-in v00.1"
+    Private Const addinLongName As String = "tbXLLerator Add-in v0.1"
 
     [DllExport]
     Public Function xlAutoOpen() As Long
@@ -367,10 +367,10 @@ Module Auto_Callbacks
         
         Set udf = New UDF
         With udf
-            .ProcName = "TBXLL_SlowCalcUnsafe"
-            .FuncText = "TBXLL_SlowCalcUnsafe"
+            .ProcName = "TBXLL_SpeedStaticUnsafe"
+            .FuncText = "TBXLL_SpeedStaticUnsafe"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: Static pattern, single-threaded, intentionally unsafe"
+            .FuncHelp = "Demo: Static pattern 2, single-threaded, intentionally unsafe"
             .Volatile = False
             .ThreadSafe = False '<-- this will run alot slower
             .AddArgument Name:="number", Help:="range"
@@ -380,12 +380,25 @@ Module Auto_Callbacks
         
         Set udf = New UDF
         With udf
-            .ProcName = "TBXLL_SlowCalcSafe"
-            .FuncText = "TBXLL_SlowCalcSafe"
+            .ProcName = "TBXLL_SpeedDynamicSafe"
+            .FuncText = "TBXLL_SpeedDynamicSafe"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: AllocXLOPER12Result pattern, thread-safe concurrent execution"
+            .FuncHelp = "Demo: Dynamic pattern 1, thread-safe concurrent execution"
             .Volatile = False
             .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .AddArgument Name:="number", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SpeedDynamicUnsafe"
+            .FuncText = "TBXLL_SpeedDynamicUnsafe"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: Dynamic pattern 1, single-threaded"
+            .Volatile = False
+            .ThreadSafe = False
             .AddArgument Name:="number", Help:="range"
             .Register
         End With

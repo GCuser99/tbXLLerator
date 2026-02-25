@@ -97,7 +97,7 @@ Module Demos
     ' Demonstrates: Static result pattern for single-threaded use, intentionally thread-unsafe for comparison
     ' Example: =TBXLL_SlowCalcUnsafe(2) -> result of expensive calculation
     [DllExport]
-    Public Function TBXLL_SlowCalcUnsafe(ByRef pN As XLOPER12) As LongPtr
+    Public Function TBXLL_SpeedStaticUnsafe(ByRef pN As XLOPER12) As LongPtr
         Static xResult As XLOPER12
         Dim n As Double
         If Not Bind(pN, btNumber, n, xResult) Then Return VarPtr(xResult)
@@ -114,7 +114,24 @@ Module Demos
     ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
     ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
     [DllExport]
-    Public Function TBXLL_SlowCalcSafe(ByRef pN As XLOPER12) As LongPtr
+    Public Function TBXLL_SpeedDynamicSafe(ByRef pN As XLOPER12) As LongPtr
+        Dim n As Double
+        Dim xTemp As XLOPER12
+        If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
+        Dim i As Long
+        Dim total As Double
+        For i = 1 To 1000000
+            total = total + Sqr(i) * n
+        Next i
+        xTemp = GetXLNum12(total)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
+    ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
+    [DllExport]
+    Public Function TBXLL_SpeedDynamicUnsafe(ByRef pN As XLOPER12) As LongPtr
         Dim n As Double
         Dim xTemp As XLOPER12
         If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
