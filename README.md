@@ -14,7 +14,7 @@ The framework handles the low-level XLOPER12 memory layout, argument binding, ty
 
 ## Why?
 
-I'm a scientist, not a developer. I wrote this as my first [completed] AI-assisted coding project, which I probably could not have done with this quality and speed on my own. And certainly not without the non-artificial intelligence of Jon Johnson who wrote the [ExcelSDK](https://github.com/fafalone/TBXLLUDF) that this framework wraps.
+I'm a scientist, not a developer. I wrote this as my first completed AI-assisted coding project, which I likely could not have done to this quality and speed on my own. And certainly not without the non-artificial intelligence of Jon Johnson who wrote the [ExcelSDK](https://github.com/fafalone/TBXLLUDF) that this framework wraps.
 
 My goal in writing this wrapper was to easily design and use high-performance UDF's for large and complex spreadsheet models in a language that I am familiar with - [twinBASIC](https://twinbasic.com). Specifically, I'm using UDFs in spreadsheet models along with the (as yet unstarred! :-) [SolverWrapper](https://github.com/GCuser99/SolverWrapper) for model parameter optimization, which requires very fast worksheet execution.
 
