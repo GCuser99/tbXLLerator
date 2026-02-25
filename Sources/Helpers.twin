@@ -143,26 +143,6 @@ Module Helpers
     '--------------------------------------------------------------------------
     ' This functiion converts in input variant array to an XLOPER12 structure
     Public Function GetXLMulti12(ByRef arr() As Variant) As XLOPER12
-        /*
-        IMPORTANT - need to free up memory after using this as in this example:
-    
-        Dim xMulti As XLOPER12
-        xMulti = GetXLMulti12(arrV)
-
-        Dim args(0) As XLOPER12
-        Dim xOut(0) As XLOPER12
-        Dim xFree(0) As XLOPER12
-
-        args(0) = xMulti
-        Excel12v xlfSum, xOut(0), 1, args
-
-        ' Free the element array we allocated
-        FreeXLMulti12 xMulti
-
-        ' Free any Excel-allocated result memory
-        xFree(0) = xOut(0)
-        Excel12v xlFree, ByVal vbNullPtr, 1, xFree
-        */
         Dim rows As Long = UBound(arr, 1) + 1
         Dim cols As Long = UBound(arr, 2) + 1
         Dim count As Long = rows * cols

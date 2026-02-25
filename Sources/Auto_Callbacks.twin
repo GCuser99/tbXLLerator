@@ -108,6 +108,19 @@ Module Auto_Callbacks
         
         Set udf = New UDF
         With udf
+            .ProcName = "TBXLL_SumArray2"
+            .FuncText = "TBXLL_SumArray2"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: btArray enumeration with VarType discrimination"
+            .Volatile = False
+            .ThreadSafe = True
+            .AddArgument Name:="range", Help:="The array to sum"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
             .ProcName = "TBXLL_Upper"
             .FuncText = "TBXLL_Upper"
             .Category = "tB XLL UDF Add-In"
@@ -272,19 +285,6 @@ Module Auto_Callbacks
         End With
         udfs.Add udf
            
-        Set udf = New UDF
-        With udf
-            .ProcName = "TBXLL_SumArray2"
-            .FuncText = "TBXLL_SumArray2"
-            .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: btArray enumeration with VarType discrimination"
-            .Volatile = False
-            .ThreadSafe = True
-            .AddArgument Name:="range", Help:="The array to sum"
-            .Register
-        End With
-        udfs.Add udf
-        
         Set udf = New UDF
         With udf
             .ProcName = "TBXLL_Join"
