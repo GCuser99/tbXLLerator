@@ -2,7 +2,6 @@
 Module Auto_Callbacks
     
     Private udfs As New Collection
-    Private Const addinLongName As String = "tbXLLerator Add-in v0.1"
 
     [DllExport]
     Public Function xlAutoOpen() As Long
@@ -179,7 +178,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: zero-argument volatile Excel built-in"
             .Volatile = True
-            .ThreadSafe = False '<-- not compatible with Volatile = True
+            .ThreadSafe = True
             .Register
         End With
         udfs.Add udf
@@ -191,7 +190,7 @@ Module Auto_Callbacks
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: Static variable persistence across recalculations"
             .Volatile = True
-            .ThreadSafe = False '<-- not compatible with Volatile = True
+            .ThreadSafe = False
             .Register
         End With
         udfs.Add udf
@@ -370,7 +369,7 @@ Module Auto_Callbacks
             .ProcName = "TBXLL_SpeedStaticUnsafe"
             .FuncText = "TBXLL_SpeedStaticUnsafe"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: Static pattern 2, single-threaded, intentionally unsafe"
+            .FuncHelp = "Demo: Static pattern 2, single-threaded"
             .Volatile = False
             .ThreadSafe = False '<-- this will run alot slower
             .AddArgument Name:="number", Help:="range"
@@ -383,10 +382,23 @@ Module Auto_Callbacks
             .ProcName = "TBXLL_SpeedDynamicSafe"
             .FuncText = "TBXLL_SpeedDynamicSafe"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: Dynamic pattern 1, thread-safe concurrent execution"
+            .FuncHelp = "Demo: Dynamic pattern 1, multi-threaded execution"
             .Volatile = False
             .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
             .AddArgument Name:="number", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SpeedDynamicSafeArray"
+            .FuncText = "TBXLL_SpeedDynamicSafeArray"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: Dynamic pattern 1, multi-threaded execution"
+            .Volatile = False
+            .ThreadSafe = True '<- this is needed to support Dynamic allocation with xlbitDLLFree
+            .AddArgument Name:="range", Help:="range"
             .Register
         End With
         udfs.Add udf
@@ -399,6 +411,19 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: Dynamic pattern 1, single-threaded"
             .Volatile = False
             .ThreadSafe = False
+            .AddArgument Name:="number", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_Timestamp"
+            .FuncText = "TBXLL_Timestamp"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: Use windows API"
+            .Volatile = True
+            .ThreadSafe = True
             .AddArgument Name:="number", Help:="range"
             .Register
         End With
@@ -429,6 +454,34 @@ Module Auto_Callbacks
             .Register
         End With
         udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_AddDays"
+            .FuncText = "TBXLL_AddDays"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "CbtDate binding for Excel serial date input"
+            .Volatile = False
+            .ThreadSafe = True
+            .AddArgument Name:="date", Help:="range"
+            .AddArgument Name:="days", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_FormatArray"
+            .FuncText = "TBXLL_FormatArray"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "btArray input, per-element string construction, GetXLMulti12 string array return"
+            .Volatile = False
+            .ThreadSafe = True
+            .AddArgument Name:="range", Help:="range"
+            .AddArgument Name:="prefix", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
 
         xlAutoOpen = 1
     End Function
@@ -437,11 +490,7 @@ Module Auto_Callbacks
     Public Function xlAutoRemove() As Long
         ' Recommended, handles unregistration
         ' This gets called when unloading the add-in
-        Dim udf As UDF
-        For Each udf In udfs
-            udf.UnRegister
-        Next udf
-        xlAutoRemove = 1
+        xlAutoRemove = xlAutoClose
     End Function
     
     [DllExport]

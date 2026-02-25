@@ -9,6 +9,8 @@ Module Helpers
     Public Declare PtrSafe Function MessageBox Lib "user32" Alias "MessageBoxA" (ByVal hWnd As LongPtr, ByVal lpText As String, ByVal lpCaption As String, ByVal uType As Long) As Long
     'MessageBox 0, "xlAutoRemove called - unregistering UDFs", "XLL Diagnostic", 0
     
+    Public Const addinLongName As String = "tbXLLerator Add-in v0.1"
+    
     Public Enum GMEM
         GMEM_FIXED = &H0000
         GMEM_MOVEABLE = &H0002
@@ -118,6 +120,10 @@ Module Helpers
                     Bind = False
                 End If
             Case btValue
+                ' Coerces any input (scalar, ref, or range) to a 1x1 multi-array
+                ' and extracts element (0,0). For single cells and literals this
+                ' returns the value directly; for multi-cell ranges it returns
+                ' only the top-left cell value. Use btArray if you need all cells.
                 Dim arrV() As Variant
                 If CoerceToArray(pIn, arrV) Then
                     outValue = arrV(0, 0)
@@ -441,8 +447,8 @@ Module Helpers
                     Case xltypeStr
                         outArr(r, c) = Xloper12StrValue(elem)
                     Case xltypeErr
-                        outArr(r, c) = XlErrToString(Xloper12ErrValue(elem))
-                        ' Could also use CVErr here - caller can check for VarType vbError and process
+                        ' Preserve typed error — callers can check VarType(v) = vbError
+                        outArr(r, c) = CVErr(Xloper12ErrValue(elem))
                     Case xltypeNil, xltypeBlank
                         ' Empty cells coerced in multi-array are typically xltypeNil but xltypeBlank can appear in some edge cases
                         outArr(r, c) = Empty
@@ -458,7 +464,7 @@ Module Helpers
         CoerceToArray = True
     End Function
     
-    Private Function XlErrToString(ByVal errCode As Long) As String
+    Public Function XlErrToString(ByVal errCode As Long) As String
         Select Case errCode
             Case xlerrNull:         XlErrToString = "#NULL!"
             Case xlerrDiv0:         XlErrToString = "#DIV/0!"

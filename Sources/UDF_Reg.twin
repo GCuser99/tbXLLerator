@@ -152,7 +152,6 @@ Public Class UDF
         
         ' First some compatibility checks...
         ' Handle mutually exclusive options
-        If Me.Volatile Then Me.ThreadSafe = False
         If Me.MacroEquivalent Then Me.ThreadSafe = False
         ' Make sure that both Me.ProcName and Me.FuncHelp are defined
         If Me.ProcName = vbNullString And Me.FuncHelp <> vbNullString Then
@@ -185,10 +184,10 @@ Public Class UDF
         ' Build comma-separated argument name list
         txt = ""
         If Me.Arguments.Count > 0 Then
-            For i = 1 To Me.Arguments.Count - 1
-                txt = txt & Me.Arguments.Item(i).Name & ","
+            txt = Me.Arguments.Item(1).Name
+            For i = 2 To Me.Arguments.Count
+                txt = txt & "," & Me.Arguments.Item(i).Name
             Next i
-            txt = txt & Me.Arguments.Item(Me.Arguments.Count).Name
         End If
         def(4) = GetXLString12(txt) ' Argument text
         
@@ -254,7 +253,24 @@ Public Class UDF
         mThreadSafe = True 'preferred except for Volatile UDFs
     End Sub
     
+    ' Helper for freeing def() memory
+    Private Sub FreeRegistrationStrings()
+        If Not mRegistered Then Exit Sub
+        Dim i As Long
+        Dim lpStr As LongPtr
+        
+        ' Start at 1: def(0) is the xlGetName result owned by Excel
+        For i = 1 To UBound(def)
+            If def(i).xltype = xltypeStr Then
+                CopyMemory lpStr, ByVal VarPtr(def(i).val(0)), LenB(Of LongPtr)
+                If lpStr <> 0 Then GlobalFree lpStr
+                def(i).xltype = xltypeNil
+            End If
+        Next i
+    End Sub
+    
     Private Sub Class_Terminate()
+        FreeRegistrationStrings
         Set oArguments = Nothing
     End Sub
 

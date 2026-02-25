@@ -199,7 +199,7 @@ Module Demos_Jons
             If Len(aNumber) = 2 Then
                 iTemp = Val(Left$(aNumber, 1))
                 If iTemp > 1 Then
-                    aNumberName = aNumberName & Choose(iTemp, "", "Twenty", "Thrirty", "Fourty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninty")
+                    aNumberName = aNumberName & Choose(iTemp, "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety")
                     aNumber = Trim$(Val(Right$(aNumber, 1)))
                     bNeedHyphen = True
                 Else

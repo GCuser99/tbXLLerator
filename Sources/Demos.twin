@@ -104,7 +104,7 @@ Module Demos
         ' Simulate expensive calculation
         Dim i As Long
         Dim total As Double
-        For i = 1 To 1000000
+        For i = 1 To 10000
             total = total + Sqr(i) * n
         Next i
         xResult = GetXLNum12(total)
@@ -120,10 +120,58 @@ Module Demos
         If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
         Dim i As Long
         Dim total As Double
-        For i = 1 To 1000000
+        For i = 1 To 10000
             total = total + Sqr(i) * n
         Next i
         xTemp = GetXLNum12(total)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    
+    ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
+    ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
+    [DllExport]
+    [DllExport]
+    Public Function TBXLL_SpeedDynamicSafeArray(ByRef pRange As XLOPER12) As LongPtr
+        Dim n As Double
+        Dim xTemp As XLOPER12
+        Dim inV() As Variant
+        Dim outV() As Variant
+        
+        ' Convert to a variant array and process
+        If Not Bind(pRange, btArray, inV, xTemp) Then GoTo ReturnResult
+        
+        Dim j As Long
+        ReDim outV(0 To UBound(inV), 0 To 0)
+        Dim i As Long
+        Dim total As Double
+        
+        For j = 0 To UBound(inV)
+            If VarType(inV(j, 0)) = vbError Then
+                outV(j, 0) = inV(j, 0)
+            ElseIf VarType(inV(j, 0)) = vbDouble Then
+                n = inV(j, 0)
+                total = 0
+                For i = 1 To 10000
+                    total = total + Sqr(i) * n
+                Next i
+                outV(j, 0) = total
+            Else
+                outV(j, 0) = CVErr(xlerrValue)
+            End If
+        Next j
+
+        ' Convert result array to XLOPER12
+        Dim xMulti As XLOPER12
+        xMulti = GetXLMulti12(outV)
+
+        If xMulti.xltype <> xltypeMulti Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+        xTemp = xMulti
+        
     ReturnResult:
         Return AllocResultToCaller(xTemp)
     End Function
@@ -137,7 +185,7 @@ Module Demos
         If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
         Dim i As Long
         Dim total As Double
-        For i = 1 To 1000000
+        For i = 1 To 10000
             total = total + Sqr(i) * n
         Next i
         xTemp = GetXLNum12(total)
@@ -430,7 +478,7 @@ Module Demos
     Public Function TBXLL_AddInInfo() As LongPtr
         Dim xTemp As XLOPER12
         ' Match the string returned by xlAddInManagerInfo12
-        xTemp = GetXLString12("tB XLL Add-in v2.0")
+        xTemp = GetXLString12(addinLongName)
         Return AllocResultToCaller(xTemp)
     End Function
 
@@ -439,6 +487,7 @@ Module Demos
     [DllExport]
     Public Function TBXLL_Join(ByRef pRange As XLOPER12, ByRef pTranspose As XLOPER12) As LongPtr
         Dim xTemp As XLOPER12
+        Dim xSource As XLOPER12
         Dim arrV() As Variant
         Dim transpose As Boolean
 
@@ -449,10 +498,11 @@ Module Demos
             GoTo ReturnResult
         End If
 
+        ' Start with original input
+        xSource = pRange
+
         If transpose Then
             ' Use Excel's internal Transpose function
-            ' This is not needed of course - could do same in array enumeration below
-            ' but just to show how to use built-ins along with array enumeration
             Dim args(0) As XLOPER12
             args(0) = pRange
 
@@ -460,11 +510,11 @@ Module Demos
                 SetErrorResult xTemp
                 GoTo ReturnResult
             End If
-            pRange = xTemp
+            xSource = xTemp
         End If
 
         ' Convert to a variant array and process
-        If Not Bind(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
+        If Not Bind(xSource, btArray, arrV, xTemp) Then GoTo ReturnResult
 
         Dim r As Long, c As Long
         Dim txt As String
@@ -472,8 +522,10 @@ Module Demos
         For r = 0 To UBound(arrV, 1)
             For c = 0 To UBound(arrV, 2)
                 Select Case VarType(arrV(r, c))
-                    Case vbDouble, vbLong, vbDate, vbError
+                    Case vbDouble, vbLong, vbDate
                         txt = txt & CStr(arrV(r, c)) & ","
+                    Case vbError
+                        txt = txt & XlErrToString(CLng(arrV(r, c))) & ","
                     Case vbString, vbEmpty
                         txt = txt & arrV(r, c) & ","
                 End Select
@@ -532,8 +584,12 @@ Module Demos
         Dim r As Long, c As Long
         For r = 0 To rows - 1
             For c = 0 To cols - 1
-                If VarType(arr1(r, c)) = vbDouble And _
-                   VarType(arr2(r, c)) = vbDouble Then
+                If VarType(arr1(r, c)) = vbError Then
+                    arrOut(r, c) = arr1(r, c)
+                ElseIf VarType(arr2(r, c)) = vbError Then
+                    arrOut(r, c) = arr2(r, c)
+                ElseIf VarType(arr1(r, c)) = vbDouble And _
+                       VarType(arr2(r, c)) = vbDouble Then
                     arrOut(r, c) = CDbl(arr1(r, c)) * CDbl(arr2(r, c))
                 Else
                     arrOut(r, c) = CVErr(xlerrValue)
@@ -606,6 +662,8 @@ Module Demos
                         arrOut(r, c) = prefix & "_" & CStr(arrV(r, c))
                     Case vbString
                         arrOut(r, c) = prefix & "_" & arrV(r, c)
+                    Case vbError
+                        arrOut(r, c) = arrV(r, c)
                     Case Else
                         arrOut(r, c) = CVErr(xlerrValue)
                 End Select
@@ -735,6 +793,8 @@ Module Demos
                 Select Case VarType(arrV(r, c))
                     Case vbDouble, vbLong
                         arrOut(r, c) = CDbl(arrV(r, c)) / total
+                    Case vbError
+                        arrOut(r, c) = arrV(r, c)
                     Case Else
                         arrOut(r, c) = CVErr(xlerrValue)
                 End Select
@@ -829,7 +889,6 @@ Module Demos
     
     ' Demonstrates: Zero-argument Excel built-in call; volatility via registration not function code
     ' Example: =TBXLL_Now() -> current date/time
-    ' Note: Volatile functions cannot be registered with .SafeThread = True; Use .Volatile = True
     [DllExport]
     Public Function TBXLL_Now() As LongPtr
         Dim xTemp As XLOPER12
@@ -839,11 +898,11 @@ Module Demos
         Return AllocResultToCaller(xTemp)
     End Function
     
-    ' Demonstrates: Static variable persistence across recalculations with volatile registration (udf.Volatile) not function code
+    ' Demonstrates: Static variable persistence across recalculations with volatile 
+    ' registration (udf.Volatile), not function code
     ' Example: =TBXLL_RecalcCounter() -> increments on each recalc
-    ' Note: Volatile functions cannot be registered with .SafeThread = True; Use .Volatile = True
     ' Note: This must use the alternate static memory management model becuase of the state 
-    ' persistence of "counter" across calls
+    ' persistence of "counter" across calls so it cannot be registered with ThreadSafe = True
     [DllExport]
     Public Function TBXLL_RecalcCounter() As LongPtr
         Static xResult As XLOPER12
@@ -853,6 +912,35 @@ Module Demos
         xResult = GetXLInt12(counter)
 
         Return VarPtr(xResult)
+    End Function
+    
+    Public Declare PtrSafe Function QueryPerformanceCounter Lib "kernel32" (lpPerformanceCount As LongLong) As BOOL
+    Public Declare PtrSafe Function QueryPerformanceFrequency Lib "kernel32" (lpFrequency As LongLong) As BOOL
+
+    ' Returns seconds since an arbitrary origin
+    ' register as volatile and thread safe!!!
+    ' Static state is allowed in thread‑safe UDFs if it is immutable after initialization, or if races are provably benign.
+    [DllExport]
+    Public Function TBXLL_Timestamp(ByRef pRef As XLOPER12) As LongPtr
+        Dim xResult As XLOPER12
+        Static freq As LongLong
+        Static initialized As Boolean
+        Dim counter As LongLong
+        Dim xDummy As XLOPER12
+        
+        ' Mark function volatile
+        Dim xArgs(0) As XLOPER12
+        xArgs(0) = GetXLBool12(True)
+        Excel12v(xlfVolatile, ByVal vbNullPtr, 1, xArgs)
+
+        If Not initialized Then
+            QueryPerformanceFrequency freq
+            initialized = True
+        End If
+
+        QueryPerformanceCounter counter
+        xResult = GetXLNum12(counter / freq)
+        Return AllocResultToCaller(xResult)
     End Function
     
 End Module
