@@ -130,7 +130,7 @@ Use only when the UDF requires shared state across calls (e.g. a recalculation c
 All other UDFs should use Pattern 1 regardless of how they are registered.
 ```vba
 ' Demonstrates: Static variable persistence across recalculations with volatile registration (udf.Volatile)
-' Note: Volatile functions should not be registered with .SafeThread = True; Use .Volatile = True
+' Note: Volatile functions should using .Volatile = True and .SafeThread = False
 [DllExport]
 Public Function TBXLL_RecalcCounter() As LongPtr
     Static xResult As XLOPER12 '<-- required
