@@ -4,121 +4,11 @@
 
 [Description("This Module contains UDF callbacks")]
 Module Demos
-    
-    '------------------------------------------------------------------------------
-    ' XLL MEMORY MANAGEMENT STRATEGY
-    '
-    ' Excel XLL UDFs must return a pointer to an XLOPER12. This XLL uses two
-    ' memory management patterns. Pattern 1 (dynamic) is preferred for all new
-    ' UDFs unless a specific reason requires Pattern 2 (static).
-    
-    ' PATTERN 1: DYNAMIC ALLOCATION WITH xlbitDLLFree (Preferred)
-    ' ------------------------------------------------------------
-    '   [DllExport]
-    '   Public Function TBXLL_Example(...) As LongPtr
-    '       Dim xTemp As XLOPER12        ' local, per-call — no Static
-    '       ...
-    '       Return AllocResultToCaller(xTemp)
-    '   End Function
-    '
-    ' Each call allocates its own independent XLOPER12 on the heap via
-    ' AllocResultToCaller. Excel calls xlAutoFree12 when done with the result.
-    ' This pattern allows Excel to execute the function concurrently across
-    ' cells during multithreaded recalculation, which can dramatically improve
-    ' performance on large models with many cells calling the same UDF.
-    '
-    ' Use for all functions with no shared state and no Excel API calls.
-    ' Register with ThreadSafe = True.
-    '
-    '
-    ' ERROR HANDLING WITH PATTERN 2
-    ' ------------------------------
-    ' All code paths must set xTemp before returning. Use GoTo ReturnResult
-    ' to funnel all paths through a single AllocResultToCaller call:
-    '
-    '   If Not Bind(...) Then GoTo ReturnResult  ' Bind sets xTemp on failure
-    '   If Excel12v(...) <> 0 Then
-    '       SetErrorResult xTemp                 ' must set explicitly on Excel12v failure
-    '       GoTo ReturnResult
-    '   End If
-    '   xTemp = GetXLNum12(result)
-    ' ReturnResult:
-    '   Return AllocResultToCaller(xTemp)
-    '
-    ' Note: Bind sets xTemp automatically on failure. Excel12v and GetXLMulti12
-    ' do NOT — SetErrorResult xTemp must be called explicitly before GoTo.
-    '
-    '
-    ' xlAutoFree12 IMPLEMENTATION NOTE (twinBASIC-specific)
-    ' -----------------------------------------------------
-    ' The Excel SDK declares xlAutoFree12 as:
-    '   void WINAPI xlAutoFree12(LPXLOPER12 pResult)
-    '
-    ' In C, LPXLOPER12 is the raw pointer value returned by the UDF. In
-    ' twinBASIC, ByRef XLOPER12 does not expose that raw pointer — VarPtr(pResult)
-    ' returns the stack address of the ByRef parameter, not the GlobalAlloc pointer.
-    '
-    ' Therefore xlAutoFree12 is declared as ByVal LongPtr:
-    '   Public Sub xlAutoFree12(ByVal pResult As LongPtr)
-    '
-    ' This receives the exact pointer returned by the UDF. From Excel's
-    ' perspective this is ABI-equivalent to the standard C implementation.
-    ' xlAutoFree12 handles xltypeStr, xltypeMulti (including embedded strings),
-    ' and all scalar types. It is safe to export even when not needed — Excel
-    ' only calls it when xlbitDLLFree is set on a returned XLOPER12.
-    '
-    '
-    ' PATTERN 2: STATIC RESULT (Non-thread-safe UDFs)
-    ' ------------------------------------------------
-    '   [DllExport]
-    '   Public Function TBXLL_Example(...) As LongPtr
-    '       Static xResult As XLOPER12   ' persists for XLL lifetime
-    '       ...
-    '       Return VarPtr(xResult)
-    '   End Function
-    '
-    ' Excel guarantees non-thread-safe UDFs are never executed concurrently,
-    ' so returning a pointer to static storage is safe. However this pattern
-    ' prevents Excel from calling the function concurrently across cells,
-    ' which limits performance on large models.
-    '
-    ' Use ONLY when:
-    '   - UDF maintains persistent state across calls (e.g. TBXLL_RecalcCounter)
-    '
-    ' Register with ThreadSafe = False (default).
-    '
-    '
-    ' WARNING: DO NOT MIX PATTERNS
-    ' ----------------------------
-    ' Each UDF must use exactly one pattern:
-    '   - Do NOT return Static storage from a ThreadSafe UDF
-    '   - Do NOT use Dynamic allocation without setting xlbitDLLFree
-    '   - Do NOT call FreeXLMulti12 before AllocResultToCaller on array results
-    '     (xlAutoFree12 handles element array cleanup for thread-safe UDFs)
-    '------------------------------------------------------------------------------
-    
-    
-    ' Demonstrates: Static result pattern for single-threaded use, intentionally thread-unsafe for comparison
-    ' Example: =TBXLL_SlowCalcUnsafe(2) -> result of expensive calculation
-    [DllExport]
-    Public Function TBXLL_SpeedStaticUnsafe(ByRef pN As XLOPER12) As LongPtr
-        Static xResult As XLOPER12
-        Dim n As Double
-        If Not Bind(pN, btNumber, n, xResult) Then Return VarPtr(xResult)
-        ' Simulate expensive calculation
-        Dim i As Long
-        Dim total As Double
-        For i = 1 To 10000
-            total = total + Sqr(i) * n
-        Next i
-        xResult = GetXLNum12(total)
-        Return VarPtr(xResult)
-    End Function
 
     ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
     ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
     [DllExport]
-    Public Function TBXLL_SpeedDynamicSafe(ByRef pN As XLOPER12) As LongPtr
+    Public Function TBXLL_SpeedSafe(ByRef pN As XLOPER12) As LongPtr
         Dim n As Double
         Dim xTemp As XLOPER12
         If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
@@ -137,7 +27,7 @@ Module Demos
     ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
     [DllExport]
     [DllExport]
-    Public Function TBXLL_SpeedDynamicSafeArray(ByRef pRange As XLOPER12) As LongPtr
+    Public Function TBXLL_SpeedSafeArray(ByRef pRange As XLOPER12) As LongPtr
         Dim n As Double
         Dim xTemp As XLOPER12
         Dim inV() As Variant
@@ -183,7 +73,7 @@ Module Demos
     ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
     ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
     [DllExport]
-    Public Function TBXLL_SpeedDynamicUnsafe(ByRef pN As XLOPER12) As LongPtr
+    Public Function TBXLL_SpeedUnsafe(ByRef pN As XLOPER12) As LongPtr
         Dim n As Double
         Dim xTemp As XLOPER12
         If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
@@ -905,17 +795,14 @@ Module Demos
     ' Demonstrates: Static variable persistence across recalculations with volatile 
     ' registration (udf.Volatile), not function code
     ' Example: =TBXLL_RecalcCounter() -> increments on each recalc
-    ' Note: This must use the alternate static memory management model becuase of the state 
-    ' persistence of "counter" across calls so it cannot be registered with ThreadSafe = True
+    ' Note: This should not be registered with ThreadSafe = True
     [DllExport]
     Public Function TBXLL_RecalcCounter() As LongPtr
-        Static xResult As XLOPER12
         Static counter As Long
-
+        Dim xTemp As XLOPER12
         counter = counter + 1
-        xResult = GetXLInt12(counter)
-
-        Return VarPtr(xResult)
+        xTemp = GetXLInt12(counter)
+        Return AllocResultToCaller(xTemp)
     End Function
     
     Private Declare PtrSafe Function QueryPerformanceCounter Lib "kernel32" (lpPerformanceCount As LongLong) As BOOL
@@ -947,5 +834,7 @@ Module Demos
         xResult = GetXLNum12(counter / freq)
         Return AllocResultToCaller(xResult)
     End Function
+    
+
     
 End Module

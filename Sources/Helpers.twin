@@ -2,6 +2,44 @@
 'Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
 'Copyright (c) 2026 GCUser99 (Michael Waite)
 
+'------------------------------------------------------------------------------
+' XLL MEMORY MANAGEMENT STRATEGY
+'
+' Excel XLL UDFs must return a pointer to an XLOPER12. This XLL uses dynamic allocation with xlbitDLLFree
+'
+'   [DllExport]
+'   Public Function TBXLL_Example(...) As LongPtr
+'       Dim xTemp As XLOPER12        ' local, per-call — no Static
+'       ...
+'       Return AllocResultToCaller(xTemp)
+'   End Function
+'
+' Each call allocates its own independent XLOPER12 on the heap via
+' AllocResultToCaller. Excel calls xlAutoFree12 when done with the result.
+' This pattern allows Excel to execute the function concurrently across
+' cells during multithreaded recalculation, which can dramatically improve
+' performance on large models with many cells calling the same UDF.
+'
+' Register with ThreadSafe = True when UDF has no shared state
+'
+'
+' ERROR HANDLING
+' ------------------------------
+' All code paths must set xTemp before returning. Use GoTo ReturnResult
+' to funnel all paths through a single AllocResultToCaller call:
+'
+'   If Not Bind(...) Then GoTo ReturnResult  ' Bind sets xTemp on failure
+'   If Excel12v(...) <> 0 Then
+'       SetErrorResult xTemp                 ' must set explicitly on Excel12v failure
+'       GoTo ReturnResult
+'   End If
+'   xTemp = GetXLNum12(result)
+' ReturnResult:
+'   Return AllocResultToCaller(xTemp)
+'
+' Note: Bind sets xTemp automatically on failure. Excel12v and GetXLMulti12
+' do NOT — SetErrorResult xTemp must be called explicitly before GoTo.
+
 [Description("This Module contains convenient wrappers for the Jon Johnson's ExcelSDK")]
 Module Helpers
     Option Explicit

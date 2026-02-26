@@ -84,7 +84,7 @@ Public Class UDF
         MacroEquivalent = mMacroEquivalent
     End Property
     
-    [Description("Controls whether the function is registered as thread-safe, allowing Excel to call it concurrently during multithreaded recalculation. Requires dynamic memory allocation pattern; incompatible with Static result variables.")]
+    [Description("Controls whether the function is registered as thread-safe, allowing Excel to call it concurrently during multithreaded recalculation.")]
     Public Property Let ThreadSafe(ByVal v As Boolean)
         mThreadSafe = v
     End Property
