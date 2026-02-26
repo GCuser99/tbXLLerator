@@ -228,7 +228,7 @@ ReturnResult:
 End Function
 ```
 
-### Optional argument
+### Optional input argument
 ```vba
 ' Demonstrates: Optional argument handling using xltypeMissing detection
 ' Example: =TBXLL_AddOptional(1, 2) -> 3  |  =TBXLL_AddOptional(1, 2, 3) -> 6
