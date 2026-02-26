@@ -329,31 +329,6 @@ End With
 
 ---
 
-## xlAutoFree12
-
-`xlAutoFree12` is called by Excel when it finishes with any XLOPER12 result that has `xlbitDLLFree` set. It handles all return types:
-```vba
-[DllExport]
-Public Sub xlAutoFree12(ByVal pResult As LongPtr)
-    If pResult = 0 Then Exit Sub
-    Dim xltype As Long
-    CopyMemory xltype, ByVal (pResult + 24), 4  ' xltype at offset 24 in twinBASIC layout
-    xltype = xltype And &H0FFF
-    Select Case xltype
-        Case xltypeStr
-            Dim lpStr As LongPtr
-            CopyMemory lpStr, ByVal pResult, LenB(Of LongPtr)
-            If lpStr <> 0 Then GlobalFree lpStr
-        Case xltypeMulti
-            ' frees element array and any embedded string buffers
-            ...
-    End Select
-    GlobalFree pResult
-End Sub
-```
-
----
-
 ## Installation
 
 1. Install [twinBASIC](https://twinbasic.com)
