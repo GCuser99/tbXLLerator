@@ -309,16 +309,15 @@ End With
 
 ### Registration properties and methods
 
-| Property | Type | Notes |
-|----------|------|-------|
-| `ProcName` | String | Exported function name |
-| `FuncText` | String | Name shown in Function Wizard (default = ProcName |
-| `Category` | String | Function Wizard category |
-| `FuncHelp` | String | Function description |
-| `Visible` | Boolean | Show in Function Wizard (default = True) |
-| `Volatile` | Boolean | Adds `!` to type string |
-| `ThreadSafe` | Boolean | Adds `$` to type string, mutually exclusive with MacroEquivalent |
-| `MacroEquivalent` | Boolean | Adds `#` to type string, enables macro-only API calls |
+| Property | Type | Default | Notes |
+|----------|------|-------|-------|
+| `ProcName` | String | FuncText if supplied | Exported function name |
+| `FuncText` | String | ProcName if supplied | Name shown in Function Wizard (default = ProcName |
+| `Category` | String | NullString | Function Wizard category |
+| `FuncHelp` | String | NullString | Function description |
+| `Visible` | Boolean | True | Show in Function Wizard (default = True) |
+| `Volatile` | Boolean | False | Adds `!` to type string |
+| `ThreadSafe` | Boolean | True | Adds `$` to type string, mutually exclusive with MacroEquivalent |
 
 | Method | Arguments | Notes |
 |----------|------|-------|
