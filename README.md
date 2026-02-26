@@ -169,6 +169,45 @@ On failure, `Bind` sets `xResult` to `#VALUE!` automatically. Supported bind typ
 
 ---
 
+## UDF Registration
+
+UDFs are registered in `xlAutoOpen` using the `UDF` class:
+```vba
+Dim udf As New UDF
+With udf
+    .ProcName    = "TBXLL_Multiply"
+    .Category    = "My Add-In"
+    .FuncHelp    = "Demo: btNumber binding, scalar return"
+    .Volatile    = False
+    .ThreadSafe  = True
+    .AddArgument Name:="a", Help:="First number"
+    .AddArgument Name:="b", Help:="Second number"
+    .Register
+End With
+```
+
+### Registration properties and methods
+
+| Property | Type | Default | Notes |
+|----------|------|-------|-------|
+| `ProcName` | String | `FuncText`* | Exported function name |
+| `FuncText` | String | `ProcName`* | Name shown in Function Wizard (default = ProcName |
+| `Category` | String | NullString | Function Wizard category |
+| `FuncHelp` | String | NullString | Function description |
+| `Visible` | Boolean | True | Show in Function Wizard (default = True) |
+| `Volatile` | Boolean | False | Determines whether UDF recalculates on F9 |
+| `ThreadSafe` | Boolean | True | Enables concurrent recalculation across CPU cores |
+
+| Method | Arguments | Notes |
+|----------|------|-------|
+| `AddArgument` | name, help | Adds a new argument definition to the UDF |
+| `Register` | N/A | Registers the UDF for use as a worksheet function |
+| `Unregister` | N/A | Unregisters the UDF for use as a worksheet function |
+
+*At least one of `FuncText` or `ProcName` must be supplied
+
+---
+
 ## More Examples
 
 ### Scalar numeric
@@ -287,45 +326,6 @@ Public Function TBXLL_SumArray(ByRef pArr As XLOPER12) As LongPtr
     Return AllocResultToCaller(xTemp)
 End Function
 ```
-
----
-
-## UDF Registration
-
-UDFs are registered in `xlAutoOpen` using the `UDF` class:
-```vba
-Dim udf As New UDF
-With udf
-    .ProcName    = "TBXLL_Multiply"
-    .Category    = "My Add-In"
-    .FuncHelp    = "Demo: btNumber binding, scalar return"
-    .Volatile    = False
-    .ThreadSafe  = True
-    .AddArgument Name:="a", Help:="First number"
-    .AddArgument Name:="b", Help:="Second number"
-    .Register
-End With
-```
-
-### Registration properties and methods
-
-| Property | Type | Default | Notes |
-|----------|------|-------|-------|
-| `ProcName` | String | `FuncText`* | Exported function name |
-| `FuncText` | String | `ProcName`* | Name shown in Function Wizard (default = ProcName |
-| `Category` | String | NullString | Function Wizard category |
-| `FuncHelp` | String | NullString | Function description |
-| `Visible` | Boolean | True | Show in Function Wizard (default = True) |
-| `Volatile` | Boolean | False | Determines whether UDF recalculates on F9 |
-| `ThreadSafe` | Boolean | True | Enables concurrent recalculation across CPU cores |
-
-| Method | Arguments | Notes |
-|----------|------|-------|
-| `AddArgument` | name, help | Adds a new argument definition to the UDF |
-| `Register` | N/A | Registers the UDF for use as a worksheet function |
-| `Unregister` | N/A | Unregisters the UDF for use as a worksheet function |
-
-*At least one of `FuncText` or `ProcName` must be supplied
 
 ---
 
