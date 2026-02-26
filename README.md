@@ -33,8 +33,8 @@ My goal in writing this wrapper was to be able to easily design and use high-per
 
 ## Requirements
 
-- [twinBASIC](https://twinbasic.com) (64-bit)
-- Microsoft Excel (64-bit) in MS Windows
+- [twinBASIC](https://twinbasic.com)
+- Microsoft Excel 2010 or greater (both 32-bit and 64-bit) in MS Windows
 - Jon Johnson's [ExcelSDK.twin](https://github.com/fafalone/TBXLLUDF)
 
 ---
@@ -317,8 +317,8 @@ End Function
 2. Clone or download this repository
 3. Clone or download Jon Johnson's [ExcelSDK.twin](https://github.com/fafalone/TBXLLUDF) module and import to your twinBASIC project
 4. Open the `.twinproj` file in twinBASIC
-5. Set the bitness to 64-bit
-6. Build the project - twinBASIC will produce a `.xll` file in the Win64 output folder
+5. Set the bitness (32-bit or 64-bit) to match your Excel bitness
+6. Build the project - twinBASIC will produce a `.xll` file in the Win32/Win64 output folder(s)
 7. In Excel, go to **File → Options → Add-ins → Manage: Excel Add-ins → Go** (can also access via Developer Tab → Excel Add-ins)
 8. Click **Browse** and select the `.xll` file
 9. The add-in will load and UDFs will be available in the Function Wizard under the category defined in `xlAutoOpen`
@@ -332,15 +332,9 @@ End Function
 
 ### Notes
 
-- The `.xll` must match Excel's bitness — this framework currently targets 64-bit only
+- The `.xll` must match Excel's bitness
 - Excel must be fully closed before replacing or updating the `.xll` file
   
----
-
-## Limitations
-
-This has not yet been tested on a 32-bit version of Excel.
-
 ---
 
 ## License
