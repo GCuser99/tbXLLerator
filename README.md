@@ -26,7 +26,7 @@ My goal in writing this wrapper was to easily design and use high-performance UD
 - **Array input and output** — `CoerceToArray` and `GetXLMulti12` handle full round-trip array processing
 - **Excel built-in delegation** — pass arguments directly to `xlfSum`, `xlfTranspose`, `xlfRound`, etc.
 - **Structured memory management** — two well-defined patterns (Static and Dynamic) with `AllocXLOPER12Result`, `FreeXLMulti12`, and `xlAutoFree12`
-- **UDF registration class** — `ThreadSafe`, `Volatile`, `MacroEquivalent`, `Visible` properties with automatic type string construction
+- **UDF registration class** — `ThreadSafe`, `Volatile`, `Visible` properties with automatic type string construction
 - **Comprehensive demo module** — 30+ UDFs demonstrating every major pattern
 
 ---
