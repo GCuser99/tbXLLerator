@@ -133,7 +133,7 @@ Most other UDFs should use Pattern 1 regardless of how they are registered.
 [DllExport]
 Public Function TBXLL_RecalcCounter() As LongPtr
     Static xResult As XLOPER12 '<-- required
-    Static counter As Long
+    Static counter As Long '<-- shared state across calls
 
     counter = counter + 1
     xResult = GetXLInt12(counter)
