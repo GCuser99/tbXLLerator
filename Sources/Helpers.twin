@@ -153,8 +153,8 @@ Module Helpers
                 ' This is a workaround - XLREF12 round-tripping through Variant seems broken and needs more investigation
                 If CoerceToSingleCellRef(pIn, r) Then
                     Dim rc(1) As Variant
-                    rc(0) = r.rwFirst
-                    rc(1) = r.colFirst
+                    rc(0) = r.rwFirst + 1   ' Worksheet Row
+                    rc(1) = r.colFirst + 1  ' Worksheet Column
                     outValue = rc
                     Bind = True
                 Else
