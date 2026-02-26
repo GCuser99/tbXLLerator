@@ -45,6 +45,7 @@ This shows a typical UDF callback:
 ```vba
 [DllExport]
 ' Converts a number to its Roman Numeral representation - thread-safe
+' In Excel: =TBXLL_RomanNumeral(9) --> "IX"
 Public Function TBXLL_RomanNumeral(pIn As XLOPER12) As LongPtr
     Dim num As Long
     Dim xTemp As XLOPER12
@@ -71,7 +72,7 @@ Public Function xlAutoOpen() As Long
         .Category = "tB XLL UDF Add-In"
         .FuncHelp = "Converts a number to its Roman Numeral representation"
         .Volatile = False
-        .ThreadSafe = True '<- this is needed to support fast multi-threaded calculation
+        .ThreadSafe = True '<-- supports fast multi-threaded calculation
         .AddArgument Name:="number", Help:="Number to convert"
         .Register
     End With
