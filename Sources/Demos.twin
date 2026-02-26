@@ -805,8 +805,8 @@ Module Demos
         Return AllocResultToCaller(xTemp)
     End Function
     
-    Private Declare PtrSafe Function QueryPerformanceCounter Lib "kernel32" (lpPerformanceCount As LongLong) As BOOL
-    Private Declare PtrSafe Function QueryPerformanceFrequency Lib "kernel32" (lpFrequency As LongLong) As BOOL
+    Private Declare PtrSafe Function QueryPerformanceCounter Lib "kernel32" (lpPerformanceCount As LongLong) As Long
+    Private Declare PtrSafe Function QueryPerformanceFrequency Lib "kernel32" (lpFrequency As LongLong) As Long
     
     ' Used for in worksheet performance testing - returns number of seconds against an arbutrary origin
     ' register as volatile and thread safe!!!
