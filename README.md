@@ -6,17 +6,15 @@ A framework for building Excel XLL add-ins in [twinBASIC](https://twinbasic.com)
 
 ## Overview
 
-Excel XLL add-ins are native DLLs that integrate directly with Excel's calculation engine. They offer significant advantages over VBA and COM add-ins, including support for high-performance multithreaded calculation, and Excel's Function Wizard support. Traditionally, XLL development requires C or C++. This framework enables XLL development entirely in twinBASIC.
+Excel XLL add-ins are native DLLs that integrate directly with Excel's calculation engine. They offer significant advantages over VBA and COM add-ins, including support for high-performance multithreaded calculation, and Excel's Function Wizard support. Traditionally, XLL development requires C or C++. This framework enables XLL development entirely in [twinBASIC](https://twinbasic.com).
 
-The framework handles the low-level XLOPER12 memory layout, argument binding, type coercion, memory management, and Excel callback mechanics, allowing UDF authors to focus on modeling logic.
+This framework wraps the very excellent [ExcelSDK](https://github.com/fafalone/TBXLLUDF) written by Jon Johnson. It handles the low-level XLOPER12 memory layout, argument binding, type coercion, memory management, and Excel callback mechanics, allowing UDF authors to focus on modeling logic.
 
 ---
 
 ## Why?
 
-I'm a scientist, not a developer. I wrote this as my first completed AI-assisted coding project, which I likely could not have done to this quality and speed on my own. And certainly not without the non-artificial intelligence of Jon Johnson who wrote the [ExcelSDK](https://github.com/fafalone/TBXLLUDF) that this framework wraps.
-
-My goal in writing this wrapper was to easily design and use high-performance UDF's for large and complex spreadsheet models in a language that I am familiar with - [twinBASIC](https://twinbasic.com). Specifically, I'm using UDFs in spreadsheet models along with the (as yet unstarred! :-) [SolverWrapper](https://github.com/GCuser99/SolverWrapper) for model parameter optimization, which requires very fast worksheet execution.
+My goal in writing this wrapper was to easily design and use high-performance UDF's for large and complex spreadsheet models in a language that I am familiar with - [twinBASIC](https://twinbasic.com). Specifically, I'm using UDFs in spreadsheet models along with the [SolverWrapper](https://github.com/GCuser99/SolverWrapper) for model parameter optimization, which requires very fast worksheet execution.
 
 ---
 
