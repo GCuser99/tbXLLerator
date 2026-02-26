@@ -108,9 +108,7 @@ End Function
 
 ## Memory Management
 
-Two patterns are supported. Pattern 1 is preferred for modern UDFs, with a few exceptions.
-
-### Dynamic / xlbitDLLFree (Thread-safe, preferred)
+### Dynamic / xlbitDLLFree with xlAutoFree12
 Each call allocates an independent heap XLOPER12. Excel calls `xlAutoFree12` when done. Register with `ThreadSafe = True` to enable concurrent recalculation.
 ```vba
 [DllExport]
