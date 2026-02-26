@@ -108,7 +108,7 @@ End Function
 
 ## Memory Management
 
-Each call allocates an independent heap XLOPER12 (`AllocResultToCaller`). Excel calls `xlAutoFree12` to free memory when done. Register with `ThreadSafe = True` to enable concurrent recalculation.
+Each call allocates an independent heap XLOPER12 (`AllocResultToCaller`). Excel calls `xlAutoFree12` to free memory when done. This is compatible with `ThreadSafe = True` registration to enable concurrent multi-core recalculation.
 ```vba
 [DllExport]
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
