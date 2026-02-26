@@ -916,10 +916,11 @@ Module Demos
     
     Public Declare PtrSafe Function QueryPerformanceCounter Lib "kernel32" (lpPerformanceCount As LongLong) As BOOL
     Public Declare PtrSafe Function QueryPerformanceFrequency Lib "kernel32" (lpFrequency As LongLong) As BOOL
-
-    ' Returns seconds since an arbitrary origin
+    
+    ' Used for in worksheet performance testing - returns number of seconds against an arbutrary origin
     ' register as volatile and thread safe!!!
     ' Static state is allowed in thread‑safe UDFs if it is immutable after initialization, or if races are provably benign.
+    ' Optional input argument - a range-based calculation to wait for
     [DllExport]
     Public Function TBXLL_Timestamp(ByRef pRef As XLOPER12) As LongPtr
         Dim xResult As XLOPER12

@@ -421,10 +421,10 @@ Module Auto_Callbacks
             .ProcName = "TBXLL_Timestamp"
             .FuncText = "TBXLL_Timestamp"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: Used for in worksheet performance testing"
+            .FuncHelp = "Demo: Used for in worksheet performance testing - returns number of seconds against an arbutrary origin"
             .Volatile = True
             .ThreadSafe = True
-            .AddArgument Name:="number", Help:="range"
+            .AddArgument Name:="number", Help:="A range-based calculation to wait for (optional)"
             .Register
         End With
         udfs.Add udf
