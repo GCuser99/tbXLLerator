@@ -312,7 +312,7 @@ ReturnResult:
 End Function
 ```
 
-### Delegating to an Excel built-in
+### Delegating to an Excel built-in (Sum)
 ```vba
 ' Example: =TBXLL_SumArray(A1:A10) -> SUM(A1:A10)
 [DllExport]
