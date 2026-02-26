@@ -33,7 +33,7 @@ My goal in writing this wrapper was to be able to easily design and use high-per
 
 ## Requirements
 
-- [twinBASIC](https://twinbasic.com)
+- Wayne Phillip's [twinBASIC](https://twinbasic.com)
 - Microsoft Excel 2010 or greater (both 32-bit and 64-bit) in MS Windows
 - Jon Johnson's [ExcelSDK.twin](https://github.com/fafalone/TBXLLUDF)
 
