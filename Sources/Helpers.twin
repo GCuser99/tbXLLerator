@@ -150,8 +150,10 @@ Module Helpers
                     Bind = False
                 End If
             Case btSingleCellRef
-                ' This is a workaround - XLREF12 round-tripping through Variant seems broken and needs more investigation
-                If CoerceToSingleCellRef(pIn, r) Then
+                ' Workaround: XLREF12 UDT cannot round-trip through Variant in twinBASIC.
+                ' Row and column are returned as a 2-element Variant array: (rwFirst, colFirst).
+                ' For full XLREF12 access, call CoerceToSingleCellRef directly.
+                If ValidateSingleCellRef(pIn, r) Then
                     Dim rc(1) As Variant
                     rc(0) = r.rwFirst + 1   ' Worksheet Row
                     rc(1) = r.colFirst + 1  ' Worksheet Column
@@ -394,7 +396,7 @@ Module Helpers
         End Select
     End Function
 
-    Public Function CoerceToSingleCellRef( _
+    Public Function ValidateSingleCellRef( _
         ByRef pIn As XLOPER12, _
         ByRef outRef As XLREF12) As Boolean
 
@@ -412,14 +414,47 @@ Module Helpers
                 If sref.rwFirst = sref.rwLast And _
                    sref.colFirst = sref.colLast Then
                     outRef = sref
-                    CoerceToSingleCellRef = True
+                    ValidateSingleCellRef = True
                     Exit Function
                 End If
-                CoerceToSingleCellRef = False
-            Case xltypeRef, xltypeStr
-                CoerceToSingleCellRef = False
+                ValidateSingleCellRef = False
+            Case xltypeRef
+                ' xltypeRef val layout (64-bit):
+                ' offset 0: LongPtr — pointer to XLMREF12
+                ' offset 8: Long — idSheet
+                Dim lpMref As LongPtr
+                CopyMemory lpMref, ByVal VarPtr(pIn.val(0)), LenB(Of LongPtr)
+    
+                If lpMref = 0 Then
+                    ValidateSingleCellRef = False
+                    Exit Function
+                End If
+    
+                ' Read count from XLMREF12
+                Dim refCount As Integer
+                CopyMemory refCount, ByVal lpMref, 2
+    
+                ' Must be exactly one rectangular region
+                If refCount <> 1 Then
+                    ValidateSingleCellRef = False
+                    Exit Function
+                End If
+    
+                ' Read the first XLREF12 (after the 2-byte count + padding)
+                ' XLMREF12 layout: 2 bytes count, then padding to align XLREF12
+                CopyMemory sref, ByVal lpMref + 4, LenB(sref)
+    
+                If sref.rwFirst = sref.rwLast And _
+                   sref.colFirst = sref.colLast Then
+                    outRef = sref
+                    ValidateSingleCellRef = True
+                Else
+                    ValidateSingleCellRef = False
+                End If
+            Case xltypeStr
+                ValidateSingleCellRef = False
             Case Else
-                CoerceToSingleCellRef = False
+                ValidateSingleCellRef = False
         End Select
     End Function
 
