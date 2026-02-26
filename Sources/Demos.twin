@@ -733,7 +733,7 @@ Module Demos
     End Function
     
     ' Demonstrates: Visibility = False in UDF registration
-    ' Example: =TBXLL_CellAddress(A1) -> '$A$1'  |  =TBXLL_CellAddress(A1:B2) -> #VALUE!
+    ' Example: =TBXLL_CellAddress_Hidden(A1) -> '$A$1'  |  =TBXLL_CellAddress_Hidden(A1:B2) -> #VALUE!
     [DllExport]
     Public Function TBXLL_CellAddress_Hidden(ByRef pRef As XLOPER12) As LongPtr
         Dim xTemp As XLOPER12
@@ -834,7 +834,5 @@ Module Demos
         xResult = GetXLNum12(counter / freq)
         Return AllocResultToCaller(xResult)
     End Function
-    
-
     
 End Module

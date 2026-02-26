@@ -151,8 +151,8 @@ Module Helpers
                 End If
             Case btSingleCellRef
                 ' Workaround: XLREF12 UDT cannot round-trip through Variant in twinBASIC.
-                ' Row and column are returned as a 2-element Variant array: (rwFirst, colFirst).
-                ' For full XLREF12 access, call CoerceToSingleCellRef directly.
+                ' Here Row and column are returned as a 2-element Variant array: (rwFirst, colFirst).
+                ' For full XLREF12 access, call ValidateSingleCellRef directly.
                 If ValidateSingleCellRef(pIn, r) Then
                     Dim rc(1) As Variant
                     rc(0) = r.rwFirst + 1   ' Worksheet Row
@@ -469,7 +469,7 @@ Module Helpers
             Exit Function
         End If
 
-        ' Optional: Excel date range sanity check
+        ' Optional: Excel date range sanity check (max = December 31, 9999)
         If num < 0# Or num > 2958465# Then
             CoerceToDate = False
             Exit Function

@@ -11,7 +11,6 @@ Module Auto_Callbacks
     Public Function xlAutoOpen() As Long
         ' Required, handles registration
         Dim udf As UDF
-        
         Set udf = New UDF
         With udf
             .ProcName = "TBXLL_Multiply"
@@ -60,7 +59,7 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: hidden from the Excel Function Wizard"
             .Visible = False
             .Volatile = False
-            .ThreadSafe = False
+            .ThreadSafe = True
             .AddArgument Name:="cell", Help:="cell range"
             .Register
         End With
@@ -582,9 +581,30 @@ Module Auto_Callbacks
     End Function
     
     /*
-    ' Not used yet
+    ' Not used
+    [DllExport]
     Public Function xlAutoRegister12(ByRef pxName As XLOPER12) As LongPtr
-        xlAutoRegister12 = VarPtr(xResult)
+        ' xlAutoRegister12 is NOT implemented.
+        ' It is only called by Excel when xlfRegister is invoked with type-text missing (def(2) = GetXLMissing12())
+        ' (two-phase "lazy" registration). Since we fully register all UDFs in xlAutoOpen,
+        ' this callback is not needed. Tested and confirmed working in Excel 365
+        Static xResult As XLOPER12
+        Dim name As String
+        name = Xloper12StrValue(pxName)
+        'MessageBox 0, name, "XLL Diagnostic", 0
+    
+        Dim udf As UDF
+        For Each udf In udfs
+            If StrComp(udf.FuncText, name, vbTextCompare) = 0 Then
+                udf.Register
+                xResult = GetXLInt12(1)
+                Return VarPtr(xResult)
+            End If
+        Next udf
+    
+        ' Not found — return xlerrValue so Excel knows we couldn't handle it
+        xResult = GetXLErr12(xlerrValue)
+        Return VarPtr(xResult)
     End Function
     */
 
