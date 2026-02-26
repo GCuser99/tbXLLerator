@@ -187,7 +187,7 @@ End With
 
 ### Registration properties and methods
 
-| Property | Type | Default | Notes |
+| Property | Type | Default | Description |
 |----------|------|-------|-------|
 | `ProcName` | String | `FuncText`* | Exported function name |
 | `FuncText` | String | `ProcName`* | Name shown in Function Wizard |
@@ -197,7 +197,7 @@ End With
 | `Volatile` | Boolean | False | Determines whether UDF recalculates on F9 |
 | `ThreadSafe` | Boolean | True | Enables concurrent recalculation across CPU cores |
 
-| Method | Arguments | Notes |
+| Method | Arguments | Description |
 |----------|------|-------|
 | `AddArgument` | name, help | Adds a new argument definition to the UDF |
 | `Register` | N/A | Registers the UDF for use as a worksheet function |
