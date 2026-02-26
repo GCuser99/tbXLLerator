@@ -1,3 +1,7 @@
+'From: https://github.com/GCuser99/tbXLLerator
+'Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
+'Copyright (c) 2026 GCUser99 (Michael Waite)
+
 [Description("This Module contains convenient wrappers for the Jon Johnson's ExcelSDK")]
 Module Helpers
     Option Explicit

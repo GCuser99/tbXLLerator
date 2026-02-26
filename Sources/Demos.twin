@@ -1,3 +1,7 @@
+'From: https://github.com/GCuser99/tbXLLerator
+'Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
+'Copyright (c) 2026 GCUser99 (Michael Waite)
+
 [Description("This Module contains UDF callbacks")]
 Module Demos
     
@@ -914,8 +918,8 @@ Module Demos
         Return VarPtr(xResult)
     End Function
     
-    Public Declare PtrSafe Function QueryPerformanceCounter Lib "kernel32" (lpPerformanceCount As LongLong) As BOOL
-    Public Declare PtrSafe Function QueryPerformanceFrequency Lib "kernel32" (lpFrequency As LongLong) As BOOL
+    Private Declare PtrSafe Function QueryPerformanceCounter Lib "kernel32" (lpPerformanceCount As LongLong) As BOOL
+    Private Declare PtrSafe Function QueryPerformanceFrequency Lib "kernel32" (lpFrequency As LongLong) As BOOL
     
     ' Used for in worksheet performance testing - returns number of seconds against an arbutrary origin
     ' register as volatile and thread safe!!!
