@@ -171,11 +171,11 @@ End With
 |----------|------|-------|-------|
 | `ProcName` | String | `FuncText`* | Exported function name |
 | `FuncText` | String | `ProcName`* | Name shown in Function Wizard |
-| `Category` | String | NullString | Function Wizard category |
-| `FuncHelp` | String | NullString | Function description |
-| `Visible` | Boolean | True | Show in Function Wizard |
-| `Volatile` | Boolean | False | Determines whether UDF recalculates on F9 |
-| `ThreadSafe` | Boolean | True | Enables concurrent recalculation across CPU cores |
+| `Category` | String | `NullString` | Function Wizard category |
+| `FuncHelp` | String | `NullString` | Function description |
+| `Visible` | Boolean | `True` | Show in Function Wizard |
+| `Volatile` | Boolean | `False` | Determines whether UDF recalculates on F9 |
+| `ThreadSafe` | Boolean | `True` | Enables concurrent recalculation across CPU cores |
 
 | Method | Arguments | Description |
 |----------|------|-------|
