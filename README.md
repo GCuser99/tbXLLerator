@@ -25,7 +25,7 @@ My goal in writing this wrapper was to be able to easily design and use high-per
 - **Unified argument binding** — `Bind()` dispatcher handles `btNumber`, `btString`, `btBool`, `btDate`, `btArray`, `btSingleCellRef`, `btValue`
 - **Array input and output** — `CoerceToArray` and `GetXLMulti12` handle full round-trip array processing
 - **Excel built-in delegation** — pass arguments directly to `xlfSum`, `xlfTranspose`, `xlfRound`, etc.
-- **Structured memory management** — two well-defined patterns (Static and Dynamic) with `AllocXLOPER12Result`, `FreeXLMulti12`, and `xlAutoFree12`
+- **Structured memory management** — a well-defined pattern with `AllocXLOPER12Result` and `xlAutoFree12`
 - **UDF registration class** — `ThreadSafe`, `Volatile`, `Visible` properties with automatic type string construction
 - **Comprehensive demo module** — 30+ UDFs demonstrating every major pattern
 
@@ -110,7 +110,7 @@ End Function
 
 Two patterns are supported. Pattern 1 is preferred for modern UDFs, with a few exceptions.
 
-### Pattern 1: Dynamic / xlbitDLLFree (Thread-safe, preferred)
+### Dynamic / xlbitDLLFree (Thread-safe, preferred)
 Each call allocates an independent heap XLOPER12. Excel calls `xlAutoFree12` when done. Register with `ThreadSafe = True` to enable concurrent recalculation.
 ```vba
 [DllExport]
@@ -121,24 +121,6 @@ Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
         xTemp = GetXLNum12(n * 2)
     End If
     Return AllocResultToCaller(xTemp) '<-- required
-End Function
-```
-
-### Pattern 2: Static (Non-thread-safe)
-Use when the UDF requires shared state across calls.
-Most other UDFs should use Pattern 1 regardless of how they are registered.
-```vba
-' Demonstrates: Static variable persistence across recalculations with volatile registration (udf.Volatile)
-' Note: Volatile functions should using .Volatile = True and .SafeThread = False
-[DllExport]
-Public Function TBXLL_RecalcCounter() As LongPtr
-    Static xResult As XLOPER12 '<-- required
-    Static counter As Long '<-- shared state across calls
-
-    counter = counter + 1
-    xResult = GetXLInt12(counter)
-
-    Return VarPtr(xResult) '<-- required
 End Function
 ```
 
