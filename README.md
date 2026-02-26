@@ -91,6 +91,7 @@ Public Function xlAutoClose() As Long
     xlAutoClose = 1
 End Function
 ```
+---
 
 ## Architecture
 
