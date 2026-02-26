@@ -11,6 +11,7 @@ multithread.xlsx
 tbXLLerator_v*.twinproj
 dev/
 win64/
+win32/
 Sources/ExcelSDK.twin
 
 # User-specific files
