@@ -169,19 +169,19 @@ End With
 
 | Property | Type | Default | Description |
 |----------|------|-------|-------|
-| `ProcName` | String | `FuncText`* | Exported function name |
-| `FuncText` | String | `ProcName`* | Name shown in Function Wizard |
-| `Category` | String | `NullString` | Function Wizard category |
-| `FuncHelp` | String | `NullString` | Function description |
-| `Visible` | Boolean | `True` | Show in Function Wizard |
-| `Volatile` | Boolean | `False` | Determines whether UDF recalculates on F9 |
-| `ThreadSafe` | Boolean | `True` | Enables concurrent recalculation across CPU cores |
+| `ProcName` | `String` | `FuncText`* | Exported function name |
+| `FuncText` | `String` | `ProcName`* | Name shown in Function Wizard |
+| `Category` | `String` | `NullString` | Function Wizard category |
+| `FuncHelp` | `String` | `NullString` | Function description |
+| `Visible` | `Boolean` | `True` | Show in Function Wizard |
+| `Volatile` | `Boolean` | `False` | Determines whether UDF recalculates on F9 |
+| `ThreadSafe` | `Boolean` | `True` | Enables concurrent recalculation across CPU cores |
 
 | Method | Arguments | Description |
 |----------|------|-------|
-| `AddArgument` | name, help | Adds a new argument definition to the UDF |
-| `Register` | N/A | Registers the UDF for use as a worksheet function |
-| `Unregister` | N/A | Unregisters the UDF for use as a worksheet function |
+| `AddArgument` | `name`, `help` | Adds a new argument definition to the UDF |
+| `Register` | `N/A` | Registers the UDF for use as a worksheet function |
+| `Unregister` | `N/A` | Unregisters the UDF for use as a worksheet function |
 
 *At least one of `FuncText` or `ProcName` must be supplied
 
