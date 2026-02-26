@@ -35,7 +35,7 @@ My goal in writing this wrapper was to easily design and use high-performance UD
 
 - [twinBASIC](https://twinbasic.com) (64-bit)
 - Microsoft Excel (64-bit) in MS Windows
-- Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF)
+- Jon Johnson's [ExcelSDK.twin](https://github.com/fafalone/TBXLLUDF)
 
 ---
 
