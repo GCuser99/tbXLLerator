@@ -1,6 +1,6 @@
 # tbXLLerator - A twinBASIC XLL Framework
 
-A framework for building Excel XLL add-ins in [twinBASIC](https://twinbasic.com), a modern replacement for VBA/VB6 that supports native DLL exports. This framework provides a complete foundation for developing high-performance, thread-safe Excel UDFs without requiring C/C++.
+A framework for building Excel XLL add-ins in [twinBASIC](https://twinbasic.com), a modern replacement for VBA/VB6 that supports native DLL exports. This framework provides a complete foundation for developing high-performance, thread-safe **Excel-User-Defined-Functions** (UDFs) without requiring C/C++.
 
 ---
 
