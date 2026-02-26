@@ -192,10 +192,10 @@ End With
 | Property | Type | Default | Notes |
 |----------|------|-------|-------|
 | `ProcName` | String | `FuncText`* | Exported function name |
-| `FuncText` | String | `ProcName`* | Name shown in Function Wizard (default = ProcName |
+| `FuncText` | String | `ProcName`* | Name shown in Function Wizard |
 | `Category` | String | NullString | Function Wizard category |
 | `FuncHelp` | String | NullString | Function description |
-| `Visible` | Boolean | True | Show in Function Wizard (default = True) |
+| `Visible` | Boolean | True | Show in Function Wizard |
 | `Volatile` | Boolean | False | Determines whether UDF recalculates on F9 |
 | `ThreadSafe` | Boolean | True | Enables concurrent recalculation across CPU cores |
 
