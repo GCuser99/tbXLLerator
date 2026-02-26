@@ -421,7 +421,7 @@ Module Auto_Callbacks
             .ProcName = "TBXLL_Timestamp"
             .FuncText = "TBXLL_Timestamp"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: Use windows API"
+            .FuncHelp = "Demo: Used for in worksheet performance testing"
             .Volatile = True
             .ThreadSafe = True
             .AddArgument Name:="number", Help:="range"

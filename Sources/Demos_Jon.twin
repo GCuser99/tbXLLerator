@@ -1,11 +1,12 @@
 [Description("This Module contains UDF callbacks written by Jon Johnson")]
 Module Demos_Jons
-    'General API defs; you don't need the following if you use WinDevLib
+    ' See https://github.com/fafalone/TBXLLUDF
+    ' General API defs; you don't need the following if you use WinDevLib
     Private Const MAXLONGLONG As LongLong = 9223372036854775807^
     Private Const MAXLONG  = &H7fffffff  ' winnt
 
     [DllExport]
-    ' ' Converts a number to its written text form - thread-safe registration
+    '  Converts a number to its written text form - thread-safe registration
     Public Function TBXLL_NumberName(pIn As XLOPER12) As LongPtr
         Dim num As String
         Dim xTemp As XLOPER12
@@ -31,8 +32,8 @@ Module Demos_Jons
     End Function
     
     Private Function ConvertNumberToText(ByVal aNumber As String) As String
-    'handles numbers natively from zero all the way through (1000 milliatillion - 1), aka 10^3003
-    'larger numbers are accepted, but are named in the highest available unit
+    ' Handles numbers natively from zero all the way through (1000 milliatillion - 1), aka 10^3003
+    ' Larger numbers are accepted, but are named in the highest available unit
     On Error Resume Next
     If aNumber$ = "0" Then
         ConvertNumberToText = "Zero"
@@ -227,7 +228,6 @@ Module Demos_Jons
     End Function
 
     Private Function Num_getroman(nArabicValue As Long) As String
-
        Dim nThousands As Long
        Dim nFiveHundreds As Long
        Dim nHundreds As Long
@@ -293,7 +293,6 @@ Module Demos_Jons
        End If
    
        Num_getroman = tmp
-   
     End Function
     
 
