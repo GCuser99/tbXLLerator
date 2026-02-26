@@ -212,6 +212,7 @@ End With
 
 ### Scalar numeric
 ```vba
+' Demonstrates: btNumber binding for two scalar arguments, direct numeric return
 ' Example: =TBXLL_Multiply(3, 4) -> 12
 [DllExport]
 Public Function TBXLL_Multiply( _
@@ -229,6 +230,7 @@ End Function
 
 ### Optional argument
 ```vba
+' Demonstrates: Optional argument handling using xltypeMissing detection
 ' Example: =TBXLL_AddOptional(1, 2) -> 3  |  =TBXLL_AddOptional(1, 2, 3) -> 6
 [DllExport]
 Public Function TBXLL_AddOptional( _
@@ -314,6 +316,7 @@ End Function
 
 ### Delegating to an Excel built-in (Sum)
 ```vba
+' Demonstrates: Direct pass-through of a range argument to an Excel built-in
 ' Example: =TBXLL_SumArray(A1:A10) -> SUM(A1:A10)
 [DllExport]
 Public Function TBXLL_SumArray(ByRef pArr As XLOPER12) As LongPtr
