@@ -336,7 +336,7 @@ End Function
 
 1. Install [twinBASIC](https://twinbasic.com)
 2. Clone or download this repository
-3. Clone or download Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF) and add the SDK source file to your twinBASIC project
+3. Clone or download Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF) module and import to your twinBASIC project
 4. Open the `.twinproj` file in twinBASIC
 5. Set the bitness to 64-bit
 6. Build the project — twinBASIC will produce a `.xll` file in the Win64 output folder
