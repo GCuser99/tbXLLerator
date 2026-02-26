@@ -316,8 +316,8 @@ End With
 | `Category` | String | NullString | Function Wizard category |
 | `FuncHelp` | String | NullString | Function description |
 | `Visible` | Boolean | True | Show in Function Wizard (default = True) |
-| `Volatile` | Boolean | False | Adds `!` to type string |
-| `ThreadSafe` | Boolean | True | Adds `$` to type string, mutually exclusive with MacroEquivalent |
+| `Volatile` | Boolean | False | Determines whether UDF recalculates on F9 |
+| `ThreadSafe` | Boolean | True | Enables concurrent recalculation across CPU cores |
 
 | Method | Arguments | Notes |
 |----------|------|-------|
