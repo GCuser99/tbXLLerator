@@ -296,7 +296,7 @@ End Function
 ### Delegating to an Excel built-in (Sum)
 ```vba
 ' Demonstrates: Direct pass-through of a range argument to an Excel built-in
-' Example: =TBXLL_SumArray(A1:A10) -> SUM(A1:A10)
+' Example: =TBXLL_SumArray(A1:A10) -> =SUM(A1:A10)
 [DllExport]
 Public Function TBXLL_SumArray(ByRef pArr As XLOPER12) As LongPtr
     Dim xTemp As XLOPER12
