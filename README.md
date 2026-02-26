@@ -43,9 +43,9 @@ My goal in writing this wrapper was to easily design and use high-performance UD
 
 This shows a typical UDF callback:
 ```vba
-[DllExport]
 ' Converts a number to its Roman Numeral representation - thread-safe
 ' In Excel: =TBXLL_RomanNumeral(9) --> "IX"
+[DllExport]
 Public Function TBXLL_RomanNumeral(pIn As XLOPER12) As LongPtr
     Dim num As Long
     Dim xTemp As XLOPER12
