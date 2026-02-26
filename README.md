@@ -8,7 +8,7 @@ A framework for building Excel XLL add-ins using [twinBASIC](https://twinbasic.c
 
 Excel XLL add-ins are native DLLs that integrate directly with Excel's calculation engine. They offer significant advantages over VBA and COM add-ins, including support for high-performance multithreaded calculation, and Excel's Function Wizard support. Traditionally, XLL development requires C or C++. This framework enables XLL development entirely in [twinBASIC](https://twinbasic.com).
 
-This framework wraps the very excellent [ExcelSDK](https://github.com/fafalone/TBXLLUDF) written by Jon Johnson. It handles the low-level XLOPER12 memory layout, argument binding, type coercion, memory management, and Excel callback mechanics, allowing UDF authors to focus on modeling logic.
+This framework wraps the very excellent [ExcelSDK](https://github.com/fafalone/TBXLLUDF) written by Jon Johnson. It handles argument binding, type coercion, memory management, and Excel callback mechanics, allowing UDF authors to focus on modeling logic.
 
 ---
 
