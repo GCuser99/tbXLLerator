@@ -312,7 +312,7 @@ End With
 | Property | Type | Notes |
 |----------|------|-------|
 | `ProcName` | String | Exported function name |
-| `FuncText` | String | Name shown in Function Wizard |
+| `FuncText` | String | Name shown in Function Wizard (default = ProcName |
 | `Category` | String | Function Wizard category |
 | `FuncHelp` | String | Function description |
 | `Visible` | Boolean | Show in Function Wizard (default = True) |
