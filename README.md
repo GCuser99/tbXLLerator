@@ -333,11 +333,11 @@ End Function
 
 1. Install [twinBASIC](https://twinbasic.com)
 2. Clone or download this repository
-3. Clone or download Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF) and add the SDK source files to your twinBASIC project
+3. Clone or download Jon Johnson's [ExcelSDK](https://github.com/fafalone/TBXLLUDF) and add the SDK source file to your twinBASIC project
 4. Open the `.twinproj` file in twinBASIC
 5. Set the bitness to 64-bit
-6. Build the project — twinBASIC will produce a `.xll` file in the output folder
-7. In Excel, go to **File → Options → Add-ins → Manage: Excel Add-ins → Go**
+6. Build the project — twinBASIC will produce a `.xll` file in the Win64 output folder
+7. In Excel, go to **File → Options → Add-ins → Manage: Excel Add-ins → Go** (can also access via Developer Tab → Excel Add-ins)
 8. Click **Browse** and select the `.xll` file
 9. The add-in will load and UDFs will be available in the Function Wizard under the category defined in `xlAutoOpen`
 
@@ -352,7 +352,7 @@ End Function
 
 - The `.xll` must match Excel's bitness — this framework currently targets 64-bit only
 - Excel must be fully closed before replacing or updating the `.xll` file
-- If Excel shows `#NAME?` after reloading, close Excel fully and reopen
+  
 ---
 
 ## Limitations
