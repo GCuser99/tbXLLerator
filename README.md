@@ -74,7 +74,7 @@ Public Function xlAutoOpen() As Long
         .FuncHelp = "Converts a number to its Roman Numeral representation"
         .Volatile = False
         .ThreadSafe = True '<- this is needed to support fast multi-threaded calculation
-        .AddArgument Name:="range", Help:="range"
+        .AddArgument Name:="number", Help:="Number to convert"
         .Register
     End With
     udfs.Add udf
