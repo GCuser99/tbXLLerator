@@ -125,16 +125,16 @@ End Function
 
 ## Argument Binding
 
-`Bind()` is the unified entry point for all UDF argument type coercion:
+`BindU()` is the unified entry point for all UDF argument type coercion:
 ```vba
-Public Function Bind( _
+Public Function BindU( _
     ByRef pIn As XLOPER12, _
     ByVal target As BindType, _
     ByRef outValue As Variant, _
     ByRef xResult As XLOPER12) As Boolean
 ```
 
-On failure, `Bind` sets `xResult` to `#VALUE!` automatically. Supported bind types:
+On failure, `BindU` sets `xResult` to `#VALUE!` automatically. Supported bind types:
 
 | BindType | Output | Notes |
 |----------|--------|-------|
