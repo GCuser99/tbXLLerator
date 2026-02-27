@@ -186,7 +186,7 @@ End With
 
 <sup>1</sup>At least one of `FuncText` or `ProcName` must be supplied
 
-<sup>2</sup>`Category`, if supplied, takes precendence over `CategoryBuiltin`
+<sup>2</sup>`Category`, if supplied, takes precendence over `CategoryExcel`
 
 ---
 
