@@ -69,7 +69,7 @@ Public Function xlAutoOpen() As Long
     Set udf = New UDF
     With udf
         .ProcName = "TBXLL_RomanNumeral"
-        .Category = "tB XLL UDF Add-In"
+        .CategoryCustom = "tB XLL UDF Add-In"
         .FuncHelp = "Converts a number to its Roman Numeral representation"
         .Volatile = False
         .ThreadSafe = True '<-- supports fast multi-threaded calculation
@@ -155,7 +155,7 @@ UDFs are registered in `xlAutoOpen` using the `UDF` class:
 Dim udf As New UDF
 With udf
     .ProcName    = "TBXLL_Multiply"
-    .Category    = "My Add-In"
+    .CategoryCustom    = "My Add-In"
     .FuncHelp    = "Demo: btNumber binding, scalar return"
     .Volatile    = False
     .ThreadSafe  = True
@@ -171,7 +171,8 @@ End With
 |----------|------|-------|-------|
 | `ProcName` | `String` | `FuncText`* | Exported function name |
 | `FuncText` | `String` | `ProcName`* | Name shown in Function Wizard |
-| `Category` | `String` | `NullString` | Function Wizard category |
+| `CategoryCustom` | `String` | `NullString` | Custom Function Wizard category |
+| `CategoryBuiltin` | `FuncWizCategories` | `fwUserDefined` | Custom Function Wizard category |
 | `FuncHelp` | `String` | `NullString` | Function description |
 | `Visible` | `Boolean` | `True` | Show in Function Wizard |
 | `Volatile` | `Boolean` | `False` | Determines whether UDF recalculates on F9 |
