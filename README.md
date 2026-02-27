@@ -69,7 +69,7 @@ Public Function xlAutoOpen() As Long
     Set udf = New UDF
     With udf
         .ProcName = "TBXLL_RomanNumeral"
-        .CategoryCustom = "tB XLL UDF Add-In"
+        .Category = "tB XLL UDF Add-In"
         .FuncHelp = "Converts a number to its Roman Numeral representation"
         .Volatile = False
         .ThreadSafe = True '<-- supports fast multi-threaded calculation
@@ -155,7 +155,7 @@ UDFs are registered in `xlAutoOpen` using the `UDF` class:
 Dim udf As New UDF
 With udf
     .ProcName    = "TBXLL_Multiply"
-    .CategoryCustom    = "My Add-In"
+    .Category    = "My Add-In"
     .FuncHelp    = "Demo: btNumber binding, scalar return"
     .Volatile    = False
     .ThreadSafe  = True
