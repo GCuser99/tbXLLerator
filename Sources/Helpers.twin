@@ -28,7 +28,7 @@
 ' All code paths must set xTemp before returning. Use GoTo ReturnResult
 ' to funnel all paths through a single AllocResultToCaller call:
 '
-'   If Not Bind(...) Then GoTo ReturnResult  ' Bind sets xTemp on failure
+'   If Not BindU(...) Then GoTo ReturnResult  ' BindU sets xTemp on failure
 '   If Excel12v(...) <> 0 Then
 '       SetErrorResult xTemp                 ' must set explicitly on Excel12v failure
 '       GoTo ReturnResult
@@ -37,7 +37,7 @@
 ' ReturnResult:
 '   Return AllocResultToCaller(xTemp)
 '
-' Note: Bind sets xTemp automatically on failure. Excel12v and GetXLMulti12
+' Note: BindU sets xTemp automatically on failure. Excel12v and GetXLMulti12
 ' do NOT — SetErrorResult xTemp must be called explicitly before GoTo.
 
 ' Why register input Args as U vs Q - three things:
@@ -107,10 +107,10 @@ Module Helpers
     End Enum
     
     '===========================================================
-    ' Unified dispatcher: Bind
+    ' Unified dispatcher: BindU
     '===========================================================
     ' Useful for when input arguments are registered as U (raw XLOPER12)
-    Public Function Bind( _
+    Public Function BindU( _
         ByRef pIn As XLOPER12, _
         ByVal target As BindType, _
         ByRef outValue As Variant, _
@@ -128,42 +128,42 @@ Module Helpers
             Case btNumber
                 If CoerceToNumber(pIn, d) Then
                     outValue = d
-                    Bind = True
+                    BindU = True
                 Else
                     SetErrorResult xResult
-                    Bind = False
+                    BindU = False
                 End If
             Case btString
                 If CoerceToString(pIn, s) Then
                     outValue = s
-                    Bind = True
+                    BindU = True
                 Else
                     SetErrorResult xResult
-                    Bind = False
+                    BindU = False
                 End If
             Case btBool
                 If CoerceToBool(pIn, b) Then
                     outValue = b
-                    Bind = True
+                    BindU = True
                 Else
                     SetErrorResult xResult
-                    Bind = False
+                    BindU = False
                 End If
             Case btDate
                 If CoerceToDate(pIn, dt) Then
                     outValue = dt
-                    Bind = True
+                    BindU = True
                 Else
                     SetErrorResult xResult
-                    Bind = False
+                    BindU = False
                 End If
             Case btArray
                 If CoerceToArray(pIn, arr) Then
                     outValue = arr
-                    Bind = True
+                    BindU = True
                 Else
                     SetErrorResult xResult
-                    Bind = False
+                    BindU = False
                 End If
             Case btSingleCellRef
                 ' Workaround: XLREF12 UDT cannot round-trip through Variant in twinBASIC.
@@ -174,10 +174,10 @@ Module Helpers
                     rc(0) = r.rwFirst + 1   ' Worksheet Row
                     rc(1) = r.colFirst + 1  ' Worksheet Column
                     outValue = rc
-                    Bind = True
+                    BindU = True
                 Else
                     SetErrorResult xResult
-                    Bind = False
+                    BindU = False
                 End If
             Case btValue
                 ' Coerces any input (scalar, ref, or range) to a 1x1 multi-array
@@ -187,14 +187,14 @@ Module Helpers
                 Dim arrV() As Variant
                 If CoerceToArray(pIn, arrV) Then
                     outValue = arrV(0, 0)
-                    Bind = True
+                    BindU = True
                 Else
                     SetErrorResult xResult
-                    Bind = False
+                    BindU = False
                 End If
             Case Else
                 SetErrorResult xResult
-                Bind = False
+                BindU = False
         End Select
     End Function
     

@@ -11,7 +11,7 @@ Module Demos
     Public Function TBXLL_SpeedSafe(ByRef pN As XLOPER12) As LongPtr
         Dim n As Double
         Dim xTemp As XLOPER12
-        If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
+        If Not BindU(pN, btNumber, n, xTemp) Then GoTo ReturnResult
         Dim i As Long
         Dim total As Double
         For i = 1 To 10000
@@ -33,7 +33,7 @@ Module Demos
         Dim outV() As Variant
         
         ' Convert to a variant array and process
-        If Not Bind(pRange, btArray, inV, xTemp) Then GoTo ReturnResult
+        If Not BindU(pRange, btArray, inV, xTemp) Then GoTo ReturnResult
         
         Dim j As Long
         ReDim outV(0 To UBound(inV), 0 To 0)
@@ -75,7 +75,7 @@ Module Demos
     Public Function TBXLL_SpeedUnsafe(ByRef pN As XLOPER12) As LongPtr
         Dim n As Double
         Dim xTemp As XLOPER12
-        If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
+        If Not BindU(pN, btNumber, n, xTemp) Then GoTo ReturnResult
         Dim i As Long
         Dim total As Double
         For i = 1 To 10000
@@ -148,8 +148,8 @@ Module Demos
         Dim xTemp As XLOPER12
         Dim a As Double, b As Double
 
-        If Not Bind(pA, btNumber, a, xTemp) Then GoTo ReturnResult
-        If Not Bind(pB, btNumber, b, xTemp) Then GoTo ReturnResult
+        If Not BindU(pA, btNumber, a, xTemp) Then GoTo ReturnResult
+        If Not BindU(pB, btNumber, b, xTemp) Then GoTo ReturnResult
 
         xTemp = GetXLNum12(a * b)
     ReturnResult:
@@ -169,9 +169,9 @@ Module Demos
         Dim flag As Boolean
         Dim label As String
 
-        If Not Bind(pNum, btNumber, n, xTemp) Then GoTo ReturnResult
-        If Not Bind(pFlag, btBool, flag, xTemp) Then GoTo ReturnResult
-        If Not Bind(pLabel, btString, label, xTemp) Then GoTo ReturnResult
+        If Not BindU(pNum, btNumber, n, xTemp) Then GoTo ReturnResult
+        If Not BindU(pFlag, btBool, flag, xTemp) Then GoTo ReturnResult
+        If Not BindU(pLabel, btString, label, xTemp) Then GoTo ReturnResult
 
         If flag Then
             xTemp = GetXLString12(label & ": " & CStr(n + 10))
@@ -194,13 +194,13 @@ Module Demos
         Dim xTemp As XLOPER12
         Dim a As Double, b As Double, c As Double
 
-        If Not Bind(pA, btNumber, a, xTemp) Then GoTo ReturnResult
-        If Not Bind(pB, btNumber, b, xTemp) Then GoTo ReturnResult
+        If Not BindU(pA, btNumber, a, xTemp) Then GoTo ReturnResult
+        If Not BindU(pB, btNumber, b, xTemp) Then GoTo ReturnResult
 
         ' Optional argument: default = 0
         If pC.xltype = xltypeMissing Then
             c = 0
-        ElseIf Not Bind(pC, btNumber, c, xTemp) Then
+        ElseIf Not BindU(pC, btNumber, c, xTemp) Then
             GoTo ReturnResult
         End If
 
@@ -294,7 +294,7 @@ Module Demos
         Dim xTemp As XLOPER12
         Dim n As Double
 
-        If Not Bind(pNum, btNumber, n, xTemp) Then GoTo ReturnResult
+        If Not BindU(pNum, btNumber, n, xTemp) Then GoTo ReturnResult
 
         If n < 0 Then
             xTemp = GetXLErr12(xlerrNum)
@@ -315,8 +315,8 @@ Module Demos
         Dim xTemp As XLOPER12
         Dim a As Double, b As Double
 
-        If Not Bind(pA, btNumber, a, xTemp) Then GoTo ReturnResult
-        If Not Bind(pB, btNumber, b, xTemp) Then GoTo ReturnResult
+        If Not BindU(pA, btNumber, a, xTemp) Then GoTo ReturnResult
+        If Not BindU(pB, btNumber, b, xTemp) Then GoTo ReturnResult
 
         If b = 0 Then
             xTemp = GetXLErr12(xlerrDiv0)
@@ -349,8 +349,8 @@ Module Demos
             GoTo ReturnResult
         End If
 
-        ' Now safely bind as string (Bind will succeed)
-        If Not Bind(pText, btString, s, xTemp) Then GoTo ReturnResult
+        ' Now safely BindU as string (BindU will succeed)
+        If Not BindU(pText, btString, s, xTemp) Then GoTo ReturnResult
 
         xTemp = GetXLString12("OK: " & s)
     ReturnResult:
@@ -404,7 +404,7 @@ Module Demos
         ' Optional argument: default = False
         If pTranspose.xltype = xltypeMissing Then
             transpose = False
-        ElseIf Not Bind(pTranspose, btBool, transpose, xTemp) Then
+        ElseIf Not BindU(pTranspose, btBool, transpose, xTemp) Then
             GoTo ReturnResult
         End If
 
@@ -424,7 +424,7 @@ Module Demos
         End If
 
         ' Convert to a variant array and process
-        If Not Bind(xSource, btArray, arrV, xTemp) Then GoTo ReturnResult
+        If Not BindU(xSource, btArray, arrV, xTemp) Then GoTo ReturnResult
 
         Dim r As Long, c As Long
         Dim txt As String
@@ -456,7 +456,7 @@ Module Demos
         Dim xTemp As XLOPER12
         Dim v As Variant
 
-        If Not Bind(cell, btValue, v, xTemp) Then GoTo ReturnResult
+        If Not BindU(cell, btValue, v, xTemp) Then GoTo ReturnResult
 
         xTemp = GetXLBool12(IsEmpty(v))
     ReturnResult:
@@ -474,9 +474,9 @@ Module Demos
         Dim arr1() As Variant
         Dim arr2() As Variant
 
-        ' Bind both input arrays
-        If Not Bind(pArr1, btArray, arr1, xTemp) Then GoTo ReturnResult
-        If Not Bind(pArr2, btArray, arr2, xTemp) Then GoTo ReturnResult
+        ' BindU both input arrays
+        If Not BindU(pArr1, btArray, arr1, xTemp) Then GoTo ReturnResult
+        If Not BindU(pArr2, btArray, arr2, xTemp) Then GoTo ReturnResult
 
         ' Validate dimensions match
         If UBound(arr1, 1) <> UBound(arr2, 1) Or _
@@ -556,8 +556,8 @@ Module Demos
         Dim arrV() As Variant
         Dim prefix As String
 
-        If Not Bind(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
-        If Not Bind(pPrefix, btString, prefix, xTemp) Then GoTo ReturnResult
+        If Not BindU(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
+        If Not BindU(pPrefix, btString, prefix, xTemp) Then GoTo ReturnResult
 
         Dim rows As Long = UBound(arrV, 1) + 1
         Dim cols As Long = UBound(arrV, 2) + 1
@@ -604,8 +604,8 @@ Module Demos
         Dim dt As Double
         Dim days As Double
 
-        If Not Bind(pDate, btDate, dt, xTemp) Then GoTo ReturnResult
-        If Not Bind(pDays, btNumber, days, xTemp) Then GoTo ReturnResult
+        If Not BindU(pDate, btDate, dt, xTemp) Then GoTo ReturnResult
+        If Not BindU(pDays, btNumber, days, xTemp) Then GoTo ReturnResult
 
         ' Excel dates are stored as doubles - add days directly
         xTemp = GetXLNum12(dt + days)
@@ -620,7 +620,7 @@ Module Demos
         Dim xTemp As XLOPER12
         Dim arrV() As Variant
 
-        If Not Bind(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
+        If Not BindU(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
 
         Dim total As Double
         Dim r As Long, c As Long
@@ -652,10 +652,10 @@ Module Demos
         Dim v As Variant
 
         ' Validate is a single cell reference
-        If Not Bind(pRef, btSingleCellRef, v, xTemp) Then GoTo ReturnResult
+        If Not BindU(pRef, btSingleCellRef, v, xTemp) Then GoTo ReturnResult
 
         ' Extract the variant value
-        If Not Bind(pRef, btValue, v, xTemp) Then GoTo ReturnResult
+        If Not BindU(pRef, btValue, v, xTemp) Then GoTo ReturnResult
 
         xTemp = GetXLVariant12(v)
     ReturnResult:
@@ -669,7 +669,7 @@ Module Demos
         Dim xTemp As XLOPER12
         Dim arrV() As Variant
 
-        If Not Bind(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
+        If Not BindU(pRange, btArray, arrV, xTemp) Then GoTo ReturnResult
 
         ' Get SUM of input via Excel built-in
         Dim args(0) As XLOPER12
@@ -732,7 +732,7 @@ Module Demos
         Dim xTemp As XLOPER12
         Dim v As Variant
         ' Validate is a single cell reference
-        If Not Bind(pRef, btSingleCellRef, v, xTemp) Then GoTo ReturnResult
+        If Not BindU(pRef, btSingleCellRef, v, xTemp) Then GoTo ReturnResult
         
         Dim args(1) As XLOPER12
 
@@ -755,7 +755,7 @@ Module Demos
         Dim xTemp As XLOPER12
         Dim v As Variant
         ' Validate is a single cell reference
-        If Not Bind(pRef, btSingleCellRef, v, xTemp) Then GoTo ReturnResult
+        If Not BindU(pRef, btSingleCellRef, v, xTemp) Then GoTo ReturnResult
         
         Dim args(1) As XLOPER12
 

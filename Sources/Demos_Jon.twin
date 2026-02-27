@@ -11,7 +11,7 @@ Module Demos_Jons
         Dim num As String
         Dim xTemp As XLOPER12
         ' Convert the input XLOPER12 to a string
-        If Bind(pIn, btString, num, xTemp) Then
+        If BindU(pIn, btString, num, xTemp) Then
         	' Do the calculations and convert string to XLOPER12 for return to worksheet
         	xTemp = GetXLString12(ConvertNumberToText(num))
         End If
@@ -24,7 +24,7 @@ Module Demos_Jons
         Dim num As Long
         Dim xTemp As XLOPER12
         ' Convert the input XLOPER12 to a number
-        If Bind(pIn, btNumber, num, xTemp) Then
+        If BindU(pIn, btNumber, num, xTemp) Then
 			' Do the calculations and convert string to XLOPER12 for return to worksheet
 			xTemp = GetXLString12(Num_getroman(num))
 		End If

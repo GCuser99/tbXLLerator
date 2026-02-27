@@ -608,8 +608,7 @@ Module Auto_Callbacks
         Return VarPtr(xResult)
     End Function
     
-    /*
-    [DllExport]
+    ' This is not implemented yet
     Public Function xlAutoRegister12(ByRef pxName As XLOPER12) As LongPtr
         ' xlAutoRegister12 is NOT implemented.
         ' It is only called by Excel when xlfRegister is invoked with type-text missing (def(2) = GetXLMissing12())
@@ -633,6 +632,6 @@ Module Auto_Callbacks
         xResult = GetXLErr12(xlerrValue)
         Return VarPtr(xResult)
     End Function
-    */
+
 
 End Module
