@@ -22,7 +22,7 @@ My goal in writing this wrapper was to be able to easily design and use high-per
 
 - **Native twinBASIC** — no C/C++ required, no external build tools
 - **Thread-safe UDF support** — dynamic allocation pattern with `xlbitDLLFree` and `xlAutoFree12` enables concurrent recalculation across CPU cores
-- **Unified argument binding** — `Bind()` dispatcher handles `btNumber`, `btString`, `btBool`, `btDate`, `btArray`, `btSingleCellRef`, `btValue`
+- **Unified argument binding** — `BindU()` and `BindQ()` dispatchers handles `btNumber`, `btString`, `btBool`, `btDate`, `btArray`, `btSingleCellRef`, `btValue`
 - **Array input and output** — `CoerceToArray` and `GetXLMulti12` handle full round-trip array processing
 - **Excel built-in delegation** — pass arguments directly to `xlfSum`, `xlfTranspose`, `xlfRound`, etc.
 - **Structured memory management** — a well-defined pattern with `AllocXLOPER12Result` and `xlAutoFree12`
@@ -50,7 +50,7 @@ Public Function TBXLL_RomanNumeral(pIn As XLOPER12) As LongPtr
     Dim num As Long
     Dim xTemp As XLOPER12
     ' Convert the input XLOPER12 to a number
-    If Bind(pIn, btNumber, num, xTemp) Then
+    If BindU(pIn, btNumber, num, xTemp) Then
         ' Do the calculations and convert string to XLOPER12 for return to worksheet
         ' num_getroman does all the work (written by Jon Johnson)
         xTemp = GetXLString12(num_getroman(num))
@@ -114,7 +114,7 @@ Each UDF call allocates an independent heap XLOPER12 (`AllocResultToCaller`). Ex
 Public Function TBXLL_Example(ByRef pN As XLOPER12) As LongPtr
     Dim xTemp As XLOPER12
     Dim n As Double
-    If Bind(pN, btNumber, n, xTemp) Then
+    If BindU(pN, btNumber, n, xTemp) Then
         xTemp = GetXLNum12(n * 2)
     End If
     Return AllocResultToCaller(xTemp) '<-- required
@@ -203,8 +203,8 @@ Public Function TBXLL_Multiply( _
     ByRef pB As XLOPER12) As LongPtr
     Dim xTemp As XLOPER12
     Dim a As Double, b As Double
-    If Not Bind(pA, btNumber, a, xTemp) Then GoTo ReturnResult
-    If Not Bind(pB, btNumber, b, xTemp) Then GoTo ReturnResult
+    If Not BindU(pA, btNumber, a, xTemp) Then GoTo ReturnResult
+    If Not BindU(pB, btNumber, b, xTemp) Then GoTo ReturnResult
     xTemp = GetXLNum12(a * b)
 ReturnResult:
     Return AllocResultToCaller(xTemp)
@@ -222,8 +222,8 @@ Public Function TBXLL_AddOptional( _
     ByRef pC As XLOPER12) As LongPtr
     Dim xTemp As XLOPER12
     Dim a As Double, b As Double, c As Double
-    If Not Bind(pA, btNumber, a, xTemp) Then GoTo ReturnResult
-    If Not Bind(pB, btNumber, b, xTemp) Then GoTo ReturnResult
+    If Not BindU(pA, btNumber, a, xTemp) Then GoTo ReturnResult
+    If Not BindU(pB, btNumber, b, xTemp) Then GoTo ReturnResult
     If pC.xltype = xltypeMissing Then
         c = 0
     ElseIf Not Bind(pC, btNumber, c, xTemp) Then
@@ -249,8 +249,8 @@ Public Function TBXLL_MultiplyArrays( _
     Dim arr2() As Variant
 
     ' Bind both input arrays
-    If Not Bind(pArr1, btArray, arr1, xTemp) Then GoTo ReturnResult
-    If Not Bind(pArr2, btArray, arr2, xTemp) Then GoTo ReturnResult
+    If Not BindU(pArr1, btArray, arr1, xTemp) Then GoTo ReturnResult
+    If Not BindU(pArr2, btArray, arr2, xTemp) Then GoTo ReturnResult
 
     ' Validate dimensions match
     If UBound(arr1, 1) <> UBound(arr2, 1) Or _
