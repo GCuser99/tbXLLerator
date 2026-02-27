@@ -177,10 +177,11 @@ End With
 | `MacroType` | `MacroTypes` | `mtVisibleUDF` | Type of XLL function |
 | `Volatile` | `Boolean` | `False` | Determines whether UDF recalculates on F9 |
 | `ThreadSafe` | `Boolean` | `True` | Enables concurrent recalculation across CPU cores |
+| `ReturnType` | `ReturnTypes` | `at_XLOPER12` | Function return type |
 
 | Method | Arguments | Description |
 |----------|------|-------|
-| `AddArgument` | `name`, `help` | Adds a new argument definition to the UDF |
+| `AddArgument` | `name`, `help`, `Type` | Adds a new argument definition to the UDF |
 | `Register` | `N/A` | Registers the UDF for use as a worksheet function |
 | `Unregister` | `N/A` | Unregisters the UDF for use as a worksheet function |
 
