@@ -479,7 +479,7 @@ Module Helpers
     End Function
 
     '===========================================================
-    ' Core coercion helpers (XLOPER12 -> typed)
+    ' Core coercion helpers for input args registered with type U (raw XLOPER12 -> typed)
     '===========================================================
 
     Public Function CoerceToBool( _
