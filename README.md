@@ -177,7 +177,7 @@ End With
 | `MacroType` | `MacroTypes` | `mtVisibleUDF` | Type of XLL function |
 | `Volatile` | `Boolean` | `False` | Determines whether UDF recalculates on F9 |
 | `ThreadSafe` | `Boolean` | `True` | Enables concurrent recalculation across CPU cores |
-| `ReturnType` | `ReturnTypes` | `at_XLOPER12` | Function return type |
+| `ReturnType` | `ReturnTypes` | `dt_XLOPER12` | Function return type |
 
 | Method | Arguments | Description |
 |----------|------|-------|
