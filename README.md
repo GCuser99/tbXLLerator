@@ -171,7 +171,7 @@ End With
 |----------|------|-------|-------|
 | `ProcName` | `String` | `FuncText`* | Exported function name |
 | `FuncText` | `String` | `ProcName`* | Name shown in Function Wizard |
-| `CategoryCustom` | `String` | `NullString` | Custom Function Wizard category |
+| `Category` | `String` | `NullString` | Custom Function Wizard category |
 | `CategoryBuiltin` | `BuiltinCategories` | `bcUserDefined` | Built-in Function Wizard category |
 | `FuncHelp` | `String` | `NullString` | Function description |
 | `Visible` | `Boolean` | `True` | Show in Function Wizard |
