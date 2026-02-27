@@ -186,7 +186,7 @@ End With
 
 *At least one of `FuncText` or `ProcName` must be supplied
 
-**Category, if supplied, takes precendence over CategoryBuiltin
+**`Category`, if supplied, takes precendence over `CategoryBuiltin`
 
 ---
 
