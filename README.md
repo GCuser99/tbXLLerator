@@ -172,7 +172,7 @@ End With
 | `ProcName` | `String` | `FuncText`* | Exported function name |
 | `FuncText` | `String` | `ProcName`* | Name shown in Function Wizard |
 | `CategoryCustom` | `String` | `NullString` | Custom Function Wizard category |
-| `CategoryBuiltin` | `FuncWizCategories` | `fwUserDefined` | Custom Function Wizard category |
+| `CategoryBuiltin` | `FuncWizCategories` | `fwUserDefined` | Built-in Function Wizard category |
 | `FuncHelp` | `String` | `NullString` | Function description |
 | `Visible` | `Boolean` | `True` | Show in Function Wizard |
 | `Volatile` | `Boolean` | `False` | Determines whether UDF recalculates on F9 |
