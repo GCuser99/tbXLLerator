@@ -2,6 +2,8 @@
 'Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
 'Copyright (c) 2026 GCUser99 (Michael Waite)
 
+'For more info, see https://learn.microsoft.com/en-us/office/client-developer/excel/xlfregister-form-1
+
 [Description("This is a helper class for registering and unregistering a UDF")]
 Public Class UDF
     
@@ -37,9 +39,10 @@ Public Class UDF
     */
 
     Private mProcName As String
-    Private mVisible As Boolean
+    Private mMacroType As MacroTypes
     Private mFuncText As String
     Private mCategory As String
+    Private mCategoryExcel As Long
     Private mShortcutText As String
     Private mHelpTopic As String
     Private mFuncHelp As String
@@ -51,6 +54,35 @@ Public Class UDF
     Private def() As XLOPER12
     Private mRegistered As Boolean ' Private variable to track registration state to prevent double (non-fatal) unregister
     
+    ' Built-in Function Wizard categories
+    Public Enum ExcelCategories
+        ecAll = 0 ' User-Defined (Default)
+        ecFinancial = 1
+        ecDateTime = 2
+        ecMathTrig = 3
+        ecStatistical = 4
+        ecLookupReference = 5
+        ecDatabase = 6
+        ecText = 7
+        ecLogical = 8
+        ecInformation = 9
+        'bcCommands = 10         ' Normally hidden
+        'bcCustomizing = 11      ' Normally hidden
+        'fbcMacroControl = 12     ' Normally hidden
+        'bcDDEExternal = 13      ' Normally hidden
+        bcUserDefined = 14
+        bcEngineering = 15
+        bcCube = 16
+        bcCompatibility = 17
+        bcWeb = 18
+    End Enum
+    
+    Public Enum MacroTypes
+        mtHiddenUDF = 0
+        mtVisibleUDF = 1
+        mtCommand = 2
+    End Enum
+
     [Description("The symbol exported from your DLL/XLL - must match the name of the DLL procedure that Excel will call.")]
     Public Property Let ProcName(ByVal v As String)
         mProcName = v
@@ -60,11 +92,11 @@ Public Class UDF
     End Property
     
     [Description("Controls whether the function is visible in Excel’s Function Wizard and autocomplete.")]
-    Public Property Let Visible(ByVal v As Boolean)
-        mVisible = v
+    Public Property Let MacroType(ByVal v As MacroTypes)
+        mMacroType = v
     End Property
-    Public Property Get Visible() As Boolean
-        Visible = mVisible
+    Public Property Get MacroType() As MacroTypes
+        MacroType = mMacroType
     End Property
     
     [Description("Controls whether the function is marked as volatile in the worksheet.")]
@@ -100,7 +132,7 @@ Public Class UDF
         FuncText = mFuncText
     End Property
     
-    [Description("Determines where the function appears in Excel’s Function Wizard.")]
+    [Description("Determines the custom Function Wizard category to place the UDF. This takes precedence over CategoryBuiltin")]
     Public Property Let Category(ByVal v As String)
         mCategory = v
     End Property
@@ -108,7 +140,15 @@ Public Class UDF
         Category = mCategory
     End Property
     
-    [Description("Legacy shortcut text; ignored by modern Excel but must be supplied for compatibility.")]
+    [Description("Determines under which built-in Function Wizard category to place the UDF.")]
+    Public Property Let CategoryExcel(ByVal v As ExcelCategories)
+        mCategoryExcel = v
+    End Property
+    Public Property Get CategoryExcel() As ExcelCategories
+        CategoryExcel = mCategoryExcel
+    End Property
+    
+    [Description("A one-character, case-sensitive string that specifies the control key assigned to this command. For example, A assigns this command to CONTROL+SHIFT+A. This argument is optional and is used for commands only.")]
     Public Property Let ShortcutText(ByVal v As String)
         mShortcutText = v
     End Property
@@ -124,7 +164,7 @@ Public Class UDF
         HelpTopic = mHelpTopic
     End Property
     
-    [Description("The help string shown in Excel’s Function Wizard for the function itself.")]
+    [Description("An optional string that describes your custom function when it is selected in the Function Wizard.")]
     Public Property Let FuncHelp(ByVal v As String)
         mFuncHelp = v
     End Property
@@ -177,7 +217,8 @@ Public Class UDF
         def(1) = GetXLString12(Me.ProcName)
         
         ' Build the type-text string
-        txt = "U" & String(numArgs, "U")
+        txt = "U" ' Return type
+        txt = txt & String(numArgs, "U") ' Append argument types
         ' Handle special registration options
         If Me.Volatile Then txt = txt & "!"
         If Me.ThreadSafe Then txt = txt & "$"
@@ -197,18 +238,21 @@ Public Class UDF
         def(4) = GetXLString12(txt) ' Argument text
         
         ' Define function type
-        If Me.Visible Then
-            def(5) = GetXLString12("1") ' Visible
+        def(5) = GetXLNum12(Me.MacroType)
+
+        
+        ' If CategoryCustom and CategoryBuiltin are omitted then User-Defined category is assumed
+        If Me.Category <> vbNullString Then
+            def(6) = GetXLString12(Me.Category)
         Else
-            def(5) = GetXLString12("2") ' Hidden
+            def(6) = GetXLNum12(Me.CategoryExcel) 'Excel's builtin categories
         End If
         
-        def(6) = GetXLString12(Me.Category)
         def(7) = GetXLString12(Me.ShortcutText)
         def(8) = GetXLString12(Me.HelpTopic)
         def(9) = GetXLString12(Me.FuncHelp)
         
-        ' Handle arument help text entries - one for each argument
+        ' Handle argument help text entries - one for each argument
         For i = 1 To Me.Arguments.Count
             def(numFixed + i - 1) = GetXLString12(Me.Arguments.Item(i).Help)
         Next i
@@ -232,8 +276,8 @@ Public Class UDF
         Dim xOpers(1) As XLOPER12
         Dim xRegId(0) As XLOPER12
 
-        xOpers(0) = xDll(0)
-        xOpers(1) = GetXLString12(Me.ProcName)
+        xOpers (0) = xDll(0)
+        xOpers (1) = GetXLString12(Me.ProcName)
 
         Excel12v xlfRegisterId, xRegId(0), 2, xOpers
         Excel12v xlfUnregister, ByVal vbNullPtr, 1, xRegId
@@ -243,18 +287,18 @@ Public Class UDF
 
         ' Workaround Excel bug: re-register as hidden (macro_type = 2)
         ' Visible UDFs must be re-registered as hidden before full unregister
-        If Me.Visible Then
-            Me.Visible = False
+        If Me.MacroType = mtVisibleUDF Then
+            Me.MacroType = mtHiddenUDF
             Me.Register
             Me.UnRegister
-            Me.Visible = True
+            Me.MacroType = mtVisibleUDF
         End If
         mRegistered = False
     End Sub
     
     Private Sub Class_Initialize()
         Set oArguments = New Collection
-        mVisible = True
+        Me.MacroType = mtVisibleUDF
         mThreadSafe = True 'preferred except for Volatile UDFs
     End Sub
     
@@ -269,7 +313,7 @@ Public Class UDF
             If def(i).xltype = xltypeStr Then
                 CopyMemory lpStr, ByVal VarPtr(def(i).val(0)), LenB(Of LongPtr)
                 If lpStr <> 0 Then GlobalFree lpStr
-                def(i).xltype = xltypeNil
+                def (i).xltype = xltypeNil
             End If
         Next i
     End Sub

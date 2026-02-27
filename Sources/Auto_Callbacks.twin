@@ -54,10 +54,10 @@ Module Auto_Callbacks
         Set udf = New UDF
         With udf
             .ProcName = "TBXLL_CellAddress_Hidden"
-            .FuncText = "TBXLL_CellAddress_Hidden" ' Bug: with Visiable = False, ProcName must equal FuncText
+            .FuncText = "TBXLL_CellAddress_Hidden"
             .Category = "tB XLL UDF Add-In"
             .FuncHelp = "Demo: hidden from the Excel Function Wizard"
-            .Visible = False
+            .MacroType = mtHiddenUDF
             .Volatile = False
             .ThreadSafe = True
             .AddArgument Name:="cell", Help:="cell range"
@@ -478,9 +478,10 @@ Module Auto_Callbacks
     
     [DllExport]
     Public Function xlAutoRemove() As Long
-        ' Recommended, handles unregistration
         ' This gets called when unloading the add-in
-        xlAutoRemove = xlAutoClose
+        ' Use this to display a custom dialog box that tells the user that the add-in 
+        ' has been deactivated, or to read from or write to the registry.
+        xlAutoRemove = 1
     End Function
     
     [DllExport]
