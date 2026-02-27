@@ -174,7 +174,7 @@ End With
 | `Category`<sup>2</sup> | `String` | `NullString` | Custom Function Wizard category |
 | `CategoryExcel`<sup>2</sup> | `ExcelCategories` | `ecUserDefined` | Built-in Function Wizard category |
 | `FuncHelp` | `String` | `NullString` | Function description |
-| `Visible` | `Boolean` | `True` | Show in Function Wizard |
+| `MacroType` | `MacroTypes` | `mtVisibleUDF` | Type of XLL function |
 | `Volatile` | `Boolean` | `False` | Determines whether UDF recalculates on F9 |
 | `ThreadSafe` | `Boolean` | `True` | Enables concurrent recalculation across CPU cores |
 
