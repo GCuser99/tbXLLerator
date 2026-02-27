@@ -169,10 +169,10 @@ End With
 
 | Property | Type | Default | Description |
 |----------|------|-------|-------|
-| `ProcName`* | `String` | `FuncText` | Exported function name |
-| `FuncText`* | `String` | `ProcName` | Name shown in Function Wizard |
-| `Category`** | `String` | `NullString` | Custom Function Wizard category |
-| `CategoryBuiltin**` | `BuiltinCategories` | `bcUserDefined` | Built-in Function Wizard category |
+| `ProcName`<sup>1</sup> | `String` | `FuncText` | Exported function name |
+| `FuncText`<sup>1</sup> | `String` | `ProcName` | Name shown in Function Wizard |
+| `Category`<sup>2</sup> | `String` | `NullString` | Custom Function Wizard category |
+| `CategoryBuiltin`<sup>2</sup> | `BuiltinCategories` | `bcUserDefined` | Built-in Function Wizard category |
 | `FuncHelp` | `String` | `NullString` | Function description |
 | `Visible` | `Boolean` | `True` | Show in Function Wizard |
 | `Volatile` | `Boolean` | `False` | Determines whether UDF recalculates on F9 |
@@ -184,9 +184,9 @@ End With
 | `Register` | `N/A` | Registers the UDF for use as a worksheet function |
 | `Unregister` | `N/A` | Unregisters the UDF for use as a worksheet function |
 
-*At least one of `FuncText` or `ProcName` must be supplied
+<sup>1</sup>At least one of `FuncText` or `ProcName` must be supplied
 
-**`Category`, if supplied, takes precendence over `CategoryBuiltin`
+<sup>2</sup>`Category`, if supplied, takes precendence over `CategoryBuiltin`
 
 ---
 
