@@ -6,7 +6,7 @@
 Module Demos
 
     ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
-    ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
+    ' Example: =TBXLL_SpeedSafe(2) -> same result as TBXLL_SpeedUnSafe but runs concurrently across cells
     [DllExport]
     Public Function TBXLL_SpeedSafe(ByRef pN As XLOPER12) As LongPtr
         Dim n As Double
@@ -24,8 +24,7 @@ Module Demos
     
     
     ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
-    ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
-    [DllExport]
+    ' Example: =TBXLL_SpeedSafeArray(A1:A10000) -> do it in one call
     [DllExport]
     Public Function TBXLL_SpeedSafeArray(ByRef pRange As XLOPER12) As LongPtr
         Dim n As Double
@@ -71,12 +70,29 @@ Module Demos
     End Function
     
     ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
-    ' Example: =TBXLL_SlowCalcSafe(2) -> same result as TBXLL_SlowCalcUnsafe but runs concurrently across cells
+    ' Example: =TBXLL_SpeedUnsafe(2)
     [DllExport]
     Public Function TBXLL_SpeedUnsafe(ByRef pN As XLOPER12) As LongPtr
         Dim n As Double
         Dim xTemp As XLOPER12
         If Not Bind(pN, btNumber, n, xTemp) Then GoTo ReturnResult
+        Dim i As Long
+        Dim total As Double
+        For i = 1 To 10000
+            total = total + Sqr(i) * n
+        Next i
+        xTemp = GetXLNum12(total)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Demonstrates: same as TBXLL_SpeedSafe but register input args with Q instead of U
+    ' Example: =TBXLL_SpeedSafeQ(2) -> same result as TBXLL_SpeedSafe but registered input arguments as type Q
+    [DllExport]
+    Public Function TBXLL_SpeedSafeQ(ByRef pN As XLOPER12) As LongPtr
+        Dim n As Double
+        Dim xTemp As XLOPER12
+        If Not BindQ(pN, btNumber, n, xTemp) Then GoTo ReturnResult
         Dim i As Long
         Dim total As Double
         For i = 1 To 10000
@@ -836,6 +852,21 @@ Module Demos
         QueryPerformanceCounter counter
         xResult = GetXLNum12(counter / freq)
         Return AllocResultToCaller(xResult)
+    End Function
+    
+    ' Demonstrates: registrating input arguments as type Q which returns coerced arguments
+    ' Example: =TBXLL_MultiplyQ(3, 4) -> 12
+    [DllExport]
+    Public Function TBXLL_MultiplyQ(ByRef pA As XLOPER12, ByRef pB As XLOPER12) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim a As Double, b As Double
+
+        If Not BindQ(pA, btNumber, a, xTemp) Then GoTo ReturnResult
+        If Not BindQ(pB, btNumber, b, xTemp) Then GoTo ReturnResult
+
+        xTemp = GetXLNum12(a * b)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
     End Function
     
 End Module

@@ -27,6 +27,20 @@ Module Auto_Callbacks
         
         Set udf = New UDF
         With udf
+            .ProcName = "TBXLL_MultiplyQ"
+            .FuncText = "TBXLL_MultiplyQ"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: btNumber binding, scalar return with coerced input XLOPER12 arguments"
+            .Volatile = False
+            .ThreadSafe = True
+            .AddArgument Name:="Num1", Help:="First number", Type:=dt_XLOPER12_Coerced
+            .AddArgument Name:="Num2", Help:="Second number", Type:=dt_XLOPER12_Coerced
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
             .ProcName = "TBXLL_CellValue"
             .FuncText = "TBXLL_CellValue"
             .Category = "tB XLL UDF Add-In"
@@ -402,6 +416,19 @@ Module Auto_Callbacks
             .Volatile = False
             .ThreadSafe = False
             .AddArgument Name:="number", Help:="range"
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SpeedSafeQ"
+            .FuncText = "TBXLL_SpeedSafeQ"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: fast, multi-threaded execution with coreced input arg"
+            .Volatile = False
+            .ThreadSafe = True
+            .AddArgument Name:="number", Help:="range", type:=dt_XLOPER12_Coerced
             .Register
         End With
         udfs.Add udf

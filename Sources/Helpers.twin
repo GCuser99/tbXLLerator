@@ -40,6 +40,21 @@
 ' Note: Bind sets xTemp automatically on failure. Excel12v and GetXLMulti12
 ' do NOT — SetErrorResult xTemp must be called explicitly before GoTo.
 
+' Why register input Args as U vs Q - three things:
+
+' - No raw cell references with Q — btSingleCellRef is impossible. 
+'   Functions like TBXLL_CellAddress and TBXLL_SheetName that need row/column coordinates or sheet identity cannot work with Q.
+' - Can't pass references to Excel built-ins with Q — with U, you can pass pRange directly to xlfSum, xlfCountif, etc. and 
+'   Excel operates on the original range efficiently. With Q, Excel has already expanded the range into an xltypeMulti array, 
+'   so you're passing a potentially large array instead of a lightweight reference. For functions like TBXLL_SumArray that 
+'   just delegate to a built-in, Q is actually slower.
+' - Memory overhead for large ranges — with U, a reference to A1:A1000000 is a tiny xltypeSRef struct. 
+'   With Q, Excel materializes the entire range into an xltypeMulti array before your function is even called. 
+'   If your function only needs a subset or is just passing through to a built-in, that's wasted work and memory.
+
+' So the rule would be: use Q for functions that need scalar inputs or that process every element of the array themselves. 
+' Use U for functions that pass references to Excel built-ins, need cell coordinates, or where you want to defer/avoid materializing large ranges.
+
 [Description("This Module contains convenient wrappers for the Jon Johnson's ExcelSDK")]
 Module Helpers
     Option Explicit
@@ -94,6 +109,7 @@ Module Helpers
     '===========================================================
     ' Unified dispatcher: Bind
     '===========================================================
+    ' Useful for when input arguments are registered as U (raw XLOPER12)
     Public Function Bind( _
         ByRef pIn As XLOPER12, _
         ByVal target As BindType, _
@@ -179,6 +195,206 @@ Module Helpers
             Case Else
                 SetErrorResult xResult
                 Bind = False
+        End Select
+    End Function
+    
+    ' Useful when registering input arguments as type Q (XLOPER12 coerced by Excel)
+    Public Function BindQ( _
+        ByRef pIn As XLOPER12, _
+        ByVal target As BindType, _
+        ByRef outValue As Variant, _
+        ByRef xResult As XLOPER12) As Boolean
+
+        Select Case target
+            Case btNumber
+                Select Case pIn.xltype
+                    Case xltypeNum
+                        outValue = Xloper12NumValue(pIn)
+                        BindQ = True
+                    Case xltypeInt
+                        outValue = CDbl(Xloper12IntValue(pIn))
+                        BindQ = True
+                    Case xltypeBool
+                        outValue = IIf(Xloper12BoolValue(pIn), 1#, 0#)
+                        BindQ = True
+                    Case xltypeMulti
+                        ' Multi-cell range coerced to array — extract top-left
+                        Dim numElem As XLOPER12
+                        If ExtractFirstElement(pIn, numElem) Then
+                            If numElem.xltype = xltypeNum Then
+                                outValue = Xloper12NumValue(numElem)
+                                BindQ = True
+                            ElseIf numElem.xltype = xltypeInt Then
+                                outValue = CDbl(Xloper12IntValue(numElem))
+                                BindQ = True
+                            Else
+                                SetErrorResult xResult
+                                BindQ = False
+                            End If
+                        Else
+                            SetErrorResult xResult
+                            BindQ = False
+                        End If
+                    Case Else
+                        SetErrorResult xResult
+                        BindQ = False
+                End Select
+            Case btString
+                Select Case pIn.xltype
+                    Case xltypeStr
+                        outValue = Xloper12StrValue(pIn)
+                        BindQ = True
+                    Case xltypeNum
+                        outValue = CStr(Xloper12NumValue(pIn))
+                        BindQ = True
+                    Case xltypeInt
+                        outValue = CStr(Xloper12IntValue(pIn))
+                        BindQ = True
+                    Case xltypeBool
+                        outValue = IIf(Xloper12BoolValue(pIn), "TRUE", "FALSE")
+                        BindQ = True
+                    Case xltypeMulti
+                        Dim strElem As XLOPER12
+                        If ExtractFirstElement(pIn, strElem) Then
+                            If strElem.xltype = xltypeStr Then
+                                outValue = Xloper12StrValue(strElem)
+                                BindQ = True
+                            ElseIf strElem.xltype = xltypeNum Then
+                                outValue = CStr(Xloper12NumValue(strElem))
+                                BindQ = True
+                            Else
+                                SetErrorResult xResult
+                                BindQ = False
+                            End If
+                        Else
+                            SetErrorResult xResult
+                            BindQ = False
+                        End If
+                    Case Else
+                        SetErrorResult xResult
+                        BindQ = False
+                End Select
+            Case btBool
+                Select Case pIn.xltype
+                    Case xltypeBool
+                        outValue = Xloper12BoolValue(pIn)
+                        BindQ = True
+                    Case xltypeNum
+                        outValue = (Xloper12NumValue(pIn) <> 0#)
+                        BindQ = True
+                    Case xltypeInt
+                        outValue = (Xloper12IntValue(pIn) <> 0)
+                        BindQ = True
+                    Case xltypeMulti
+                        Dim boolElem As XLOPER12
+                        If ExtractFirstElement(pIn, boolElem) Then
+                            If boolElem.xltype = xltypeBool Then
+                                outValue = Xloper12BoolValue(boolElem)
+                                BindQ = True
+                            ElseIf boolElem.xltype = xltypeNum Then
+                                outValue = (Xloper12NumValue(boolElem) <> 0#)
+                                BindQ = True
+                            Else
+                                SetErrorResult xResult
+                                BindQ = False
+                            End If
+                        Else
+                            SetErrorResult xResult
+                            BindQ = False
+                        End If
+                    Case Else
+                        SetErrorResult xResult
+                        BindQ = False
+                End Select
+            Case btDate
+                Dim dateResult As Boolean
+                dateResult = BindQ(pIn, btNumber, outValue, xResult)
+                If dateResult Then
+                    If CDbl(outValue) < 0# Or CDbl(outValue) > 2958465# Then
+                        SetErrorResult xResult
+                        BindQ = False
+                    Else
+                        BindQ = True
+                    End If
+                Else
+                    BindQ = False
+                End If
+            Case btArray
+                ' Q already coerced ranges to xltypeMulti
+                Select Case pIn.xltype
+                    Case xltypeMulti
+                        Dim arrV() As Variant
+                        If CoerceToArray(pIn, arrV) Then
+                            outValue = arrV
+                            BindQ = True
+                        Else
+                            SetErrorResult xResult
+                            BindQ = False
+                        End If
+                    Case xltypeNum, xltypeStr, xltypeBool, xltypeInt, xltypeErr
+                        ' Scalar — wrap in 1x1 array
+                        Dim scalar(0, 0) As Variant
+                        Select Case pIn.xltype
+                            Case xltypeNum:  scalar(0, 0) = Xloper12NumValue(pIn)
+                            Case xltypeStr:  scalar(0, 0) = Xloper12StrValue(pIn)
+                            Case xltypeBool: scalar(0, 0) = Xloper12BoolValue(pIn)
+                            Case xltypeInt:  scalar(0, 0) = CDbl(Xloper12IntValue(pIn))
+                            Case xltypeErr:  scalar(0, 0) = CVErr(Xloper12ErrValue(pIn))
+                        End Select
+                        outValue = scalar
+                        BindQ = True
+                    Case Else
+                        SetErrorResult xResult
+                        BindQ = False
+                End Select
+            Case btValue
+                ' Extract scalar value directly
+                Select Case pIn.xltype
+                    Case xltypeNum
+                        outValue = Xloper12NumValue(pIn)
+                        BindQ = True
+                    Case xltypeStr
+                        outValue = Xloper12StrValue(pIn)
+                        BindQ = True
+                    Case xltypeBool
+                        outValue = Xloper12BoolValue(pIn)
+                        BindQ = True
+                    Case xltypeInt
+                        outValue = CDbl(Xloper12IntValue(pIn))
+                        BindQ = True
+                    Case xltypeErr
+                        outValue = CVErr(Xloper12ErrValue(pIn))
+                        BindQ = True
+                    Case xltypeMulti
+                        Dim valElem As XLOPER12
+                        If ExtractFirstElement(pIn, valElem) Then
+                            Select Case valElem.xltype
+                                Case xltypeNum:  outValue = Xloper12NumValue(valElem)
+                                Case xltypeStr:  outValue = Xloper12StrValue(valElem)
+                                Case xltypeBool: outValue = Xloper12BoolValue(valElem)
+                                Case xltypeInt:  outValue = CDbl(Xloper12IntValue(valElem))
+                                Case xltypeErr:  outValue = CVErr(Xloper12ErrValue(valElem))
+                                Case Else:       outValue = Empty
+                            End Select
+                            BindQ = True
+                        Else
+                            SetErrorResult xResult
+                            BindQ = False
+                        End If
+                    Case xltypeNil, xltypeMissing
+                        outValue = Empty
+                        BindQ = True
+                    Case Else
+                        SetErrorResult xResult
+                        BindQ = False
+                End Select
+            Case btSingleCellRef
+                ' Q resolves all references — cannot extract cell coordinates
+                SetErrorResult xResult
+                BindQ = False
+            Case Else
+                SetErrorResult xResult
+                BindQ = False
         End Select
     End Function
 
@@ -553,6 +769,22 @@ Module Helpers
             Case xlerrGettingData:  XlErrToString = "#GETTING_DATA"
             Case Else:              XlErrToString = "#UNKNOWN!"
         End Select
+    End Function
+    
+    Private Function ExtractFirstElement( _
+        ByRef pIn As XLOPER12, _
+        ByRef outElem As XLOPER12) As Boolean
+
+        Dim lpArray As LongPtr
+        CopyMemory lpArray, ByVal VarPtr(pIn.val(0)), LenB(Of LongPtr)
+
+        If lpArray = 0 Then
+            ExtractFirstElement = False
+            Exit Function
+        End If
+
+        CopyMemory outElem, ByVal lpArray, LenB(outElem)
+        ExtractFirstElement = True
     End Function
        
 End Module

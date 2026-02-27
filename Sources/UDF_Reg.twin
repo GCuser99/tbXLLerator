@@ -42,13 +42,14 @@ Public Class UDF
     Private mMacroType As MacroTypes
     Private mFuncText As String
     Private mCategory As String
-    Private mCategoryExcel As Long
+    Private mCategoryExcel As ExcelCategories
     Private mShortcutText As String
     Private mHelpTopic As String
     Private mFuncHelp As String
     Private mVolatile As Boolean
     Private mThreadSafe As Boolean
     Private mMacroEquivalent As Boolean
+    Private mReturnType As DataTypes
     Private oArguments As Collection
     ' def() must persist for the lifetime of the registration (Excel retains pointers)
     Private def() As XLOPER12
@@ -66,21 +67,36 @@ Public Class UDF
         ecText = 7
         ecLogical = 8
         ecInformation = 9
-        'bcCommands = 10         ' Normally hidden
-        'bcCustomizing = 11      ' Normally hidden
-        'fbcMacroControl = 12     ' Normally hidden
-        'bcDDEExternal = 13      ' Normally hidden
-        bcUserDefined = 14
-        bcEngineering = 15
-        bcCube = 16
-        bcCompatibility = 17
-        bcWeb = 18
+        'ecCommands = 10         ' Normally hidden
+        'ecCustomizing = 11      ' Normally hidden
+        'ecMacroControl = 12     ' Normally hidden
+        'ecDDEExternal = 13      ' Normally hidden
+        ecUserDefined = 14
+        ecEngineering = 15
+        ecCube = 16
+        ecCompatibility = 17
+        ecWeb = 18
     End Enum
     
     Public Enum MacroTypes
         mtHiddenUDF = 0
         mtVisibleUDF = 1
         mtCommand = 2
+    End Enum
+    
+    Public Enum DataTypes
+        dt_XLOPER12 'U
+        dt_XLOPER12_Async 'X -Return type only
+        dt_XLOPER12_Coerced 'Q
+        dt_FP12
+        dt_Boolean_ByVal
+        dt_Boolean_ByRef
+        dt_Double_ByVal
+        dt_Double_ByRef
+        dt_Long_ByVal
+        dt_Long_ByRef
+        dt_String
+        dt_StringLen
     End Enum
 
     [Description("The symbol exported from your DLL/XLL - must match the name of the DLL procedure that Excel will call.")]
@@ -172,16 +188,25 @@ Public Class UDF
         FuncHelp = mFuncHelp
     End Property
     
+    [Description("Determines under which built-in Function Wizard category to place the UDF.")]
+    Public Property Let ReturnType(ByVal v As DataTypes)
+        mReturnType = v
+    End Property
+    Public Property Get ReturnType() As DataTypes
+        ReturnType = mReturnType
+    End Property
+    
     [Description("Returns the collection of argument metadata for this UDF.")]
     Public Function Arguments() As Collection
         Set Arguments = oArguments
     End Function
     
     [Description("Adds a new argument definition (name + help text) to the UDF.")]
-    Public Function AddArgument(Optional ByVal name As Variant, Optional ByVal help As Variant) As Argument
+    Public Function AddArgument(Optional ByVal name As String, Optional ByVal help As String, Optional ByVal type As DataTypes = dt_XLOPER12) As Argument
         Dim arg As New Argument
         arg.Name = name
         arg.Help = help
+        arg.Type = type
         oArguments.Add arg
         Set AddArgument = arg
     End Function
@@ -209,7 +234,6 @@ Public Class UDF
         Excel12v xlGetName, xDll(0), 0, dummy
 
         numArgs = Me.Arguments.Count
-        If numArgs < 0 Then numArgs = 0
 
         ReDim def(0 To numFixed + numArgs) As XLOPER12
 
@@ -217,8 +241,13 @@ Public Class UDF
         def(1) = GetXLString12(Me.ProcName)
         
         ' Build the type-text string
-        txt = "U" ' Return type
-        txt = txt & String(numArgs, "U") ' Append argument types
+        txt = TypeEnumToString(Me.ReturnType) ' Return type
+        If numArgs > 0 Then
+            For i = 1 To numArgs
+                txt = txt & TypeEnumToString(Me.Arguments.Item(i).Type)
+            Next i
+        End If
+        
         ' Handle special registration options
         If Me.Volatile Then txt = txt & "!"
         If Me.ThreadSafe Then txt = txt & "$"
@@ -229,9 +258,9 @@ Public Class UDF
         
         ' Build comma-separated argument name list
         txt = ""
-        If Me.Arguments.Count > 0 Then
+        If numArgs > 0 Then
             txt = Me.Arguments.Item(1).Name
-            For i = 2 To Me.Arguments.Count
+            For i = 2 To numArgs
                 txt = txt & "," & Me.Arguments.Item(i).Name
             Next i
         End If
@@ -318,6 +347,36 @@ Public Class UDF
         Next i
     End Sub
     
+    Private Function TypeEnumToString(e As Long) As String
+        Select Case e
+            Case dt_XLOPER12
+                TypeEnumToString = "U"
+            Case dt_XLOPER12_Coerced
+                TypeEnumToString = "Q"
+            Case dt_XLOPER12_Async
+                TypeEnumToString = "X"
+            Case dt_FP12
+                TypeEnumToString = "K%"
+            Case dt_Boolean_ByVal
+                TypeEnumToString = "A"
+            Case dt_Boolean_ByRef
+                TypeEnumToString = "L"
+            Case dt_Double_ByVal
+                TypeEnumToString = "B"
+            Case dt_Double_ByRef
+                TypeEnumToString = "E"
+            Case dt_Long_ByVal
+                TypeEnumToString = "J"
+            Case dt_Long_ByRef
+                TypeEnumToString = "N"
+            Case dt_String
+                TypeEnumToString = "C%"
+            Case dt_StringLen
+                TypeEnumToString = "D%"
+            Case Else
+        End Select
+    End Function
+    
     Private Sub Class_Terminate()
         FreeRegistrationStrings
         Set oArguments = Nothing
@@ -328,6 +387,7 @@ End Class
 Public Class Argument
     Private mName As String
     Private mHelp As String
+    Private mType As DataTypes
 
     [Description("The argument name shown in Excel’s Function Wizard and formula tooltips.")]
     Public Property Let Name(ByVal v As String)
@@ -344,5 +404,17 @@ Public Class Argument
     Public Property Get Help() As String
         Help = mHelp
     End Property
+    
+    [Description("The type of argument - defaults to at_XLOPER12.")]
+    Public Property Let Type(ByVal v As DataTypes)
+        mType = v
+    End Property
+    Public Property Get Type() As DataTypes
+        Type = mType
+    End Property
+    
+    Private Sub Class_Initialize()
+        mType = dt_XLOPER12
+    End Sub
 
 End Class
