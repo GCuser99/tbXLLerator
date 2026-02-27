@@ -22,7 +22,7 @@ My goal in writing this wrapper was to be able to easily design and use high-per
 
 - **Native twinBASIC** — no C/C++ required, no external build tools
 - **Thread-safe UDF support** — dynamic allocation pattern with `xlbitDLLFree` and `xlAutoFree12` enables concurrent recalculation across CPU cores
-- **Unified argument binding** — `BindU()` and `BindQ()` dispatchers handles `btNumber`, `btString`, `btBool`, `btDate`, `btArray`, `btSingleCellRef`, `btValue`
+- **Unified argument binding** — `BindU()` and `BindQ()` dispatchers handle `btNumber`, `btString`, `btBool`, `btDate`, `btArray`, `btSingleCellRef`, `btValue`
 - **Array input and output** — `CoerceToArray` and `GetXLMulti12` handle full round-trip array processing
 - **Excel built-in delegation** — pass arguments directly to `xlfSum`, `xlfTranspose`, `xlfRound`, etc.
 - **Structured memory management** — a well-defined pattern with `AllocXLOPER12Result` and `xlAutoFree12`
