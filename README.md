@@ -185,6 +185,7 @@ End With
 | `Unregister` | `N/A` | Unregisters the UDF for use as a worksheet function |
 
 *At least one of `FuncText` or `ProcName` must be supplied
+
 **Category, if supplied, takes precendence over CategoryBuiltin
 
 ---
