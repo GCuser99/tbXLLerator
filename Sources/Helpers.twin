@@ -51,7 +51,7 @@ Module Helpers
     Public DeclareWide PtrSafe Function MessageBox Lib "user32" Alias "MessageBoxW" (ByVal hWnd As LongPtr, ByVal lpText As String, ByVal lpCaption As String, ByVal uType As Long) As Long
     'MessageBox 0, "xlAutoRemove called - unregistering UDFs", "XLL Diagnostic", 0
     
-    Public Const addinLongName As String = "tbXLLerator Add-in v0.1"
+    Public Const addinLongName As String = "tbXLLerator Add-in v0.2"
     
     Public Enum GMEM
         GMEM_FIXED = &H0000

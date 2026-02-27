@@ -808,9 +808,9 @@ Module Demos
     Private Declare PtrSafe Function QueryPerformanceCounter Lib "kernel32" (lpPerformanceCount As LongLong) As Long
     Private Declare PtrSafe Function QueryPerformanceFrequency Lib "kernel32" (lpFrequency As LongLong) As Long
     
-    ' Used for in worksheet performance testing - returns number of seconds against an arbutrary origin
-    ' register as volatile and thread safe!!!
-    ' Static state is allowed in thread‑safe UDFs if it is immutable after initialization, or if races are provably benign.
+    ' Used for in worksheet performance testing - returns number of seconds against an arbitrary origin
+    ' Register as volatile and thread safe!!!
+    ' Static state is allowed in thread‑safe UDFs if it is immutable after initialization, or if races are benign.
     ' Optional input argument - a range-based calculation to wait for
     [DllExport]
     Public Function TBXLL_Timestamp(ByRef pRef As XLOPER12) As LongPtr
@@ -819,6 +819,9 @@ Module Demos
         Static initialized As Boolean
         Dim counter As LongLong
         Dim xDummy As XLOPER12
+        
+        ' We don't actually process the input argument - Excel will wait until that resolves
+        ' before executing this call, so useful in setting calculation order on F9
         
         ' Mark function volatile
         Dim xArgs(0) As XLOPER12

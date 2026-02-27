@@ -581,24 +581,23 @@ Module Auto_Callbacks
     End Function
     
     /*
-    ' Not used
     [DllExport]
     Public Function xlAutoRegister12(ByRef pxName As XLOPER12) As LongPtr
         ' xlAutoRegister12 is NOT implemented.
         ' It is only called by Excel when xlfRegister is invoked with type-text missing (def(2) = GetXLMissing12())
-        ' (two-phase "lazy" registration). Since we fully register all UDFs in xlAutoOpen,
-        ' this callback is not needed. Tested and confirmed working in Excel 365
+        ' for two-phase "lazy" registration. Since we fully register all UDFs in xlAutoOpen,
+        ' this callback is not needed. Tested and confirmed working in Excel 365.
         Static xResult As XLOPER12
         Dim name As String
         name = Xloper12StrValue(pxName)
-        'MessageBox 0, name, "XLL Diagnostic", 0
-    
+        'MessageBox 0, name & " called in xlAutoRegister12", "XLL Diagnostic", 0
+        
         Dim udf As UDF
         For Each udf In udfs
             If StrComp(udf.FuncText, name, vbTextCompare) = 0 Then
-                udf.Register
-                xResult = GetXLInt12(1)
-                Return VarPtr(xResult)
+                'udf.Register
+                'xResult = GetXLInt12(1)
+                'Return VarPtr(xResult)
             End If
         Next udf
     
