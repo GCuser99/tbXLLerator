@@ -172,7 +172,7 @@ End With
 | `ProcName`<sup>1</sup> | `String` | `FuncText` | Exported function name |
 | `FuncText`<sup>1</sup> | `String` | `ProcName` | Name shown in Function Wizard |
 | `Category`<sup>2</sup> | `String` | `NullString` | Custom Function Wizard category |
-| `CategoryBuiltin`<sup>2</sup> | `BuiltinCategories` | `bcUserDefined` | Built-in Function Wizard category |
+| `CategoryExcel`<sup>2</sup> | `ExcelCategories` | `ecUserDefined` | Built-in Function Wizard category |
 | `FuncHelp` | `String` | `NullString` | Function description |
 | `Visible` | `Boolean` | `True` | Show in Function Wizard |
 | `Volatile` | `Boolean` | `False` | Determines whether UDF recalculates on F9 |
