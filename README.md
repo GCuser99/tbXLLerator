@@ -160,8 +160,8 @@ With udf
     .HelpTopic   = "https://github.com/GCuser99/tbXLLerator"
     .Volatile    = False
     .ThreadSafe  = True
-    .AddArgument Name:="a", Help:="First number"
-    .AddArgument Name:="b", Help:="Second number"
+    .AddArgument name:="a", help:="First number"
+    .AddArgument name:="b", help:="Second number"
     .Register
 End With
 ```
