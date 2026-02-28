@@ -173,9 +173,8 @@ Public Class UDF
     End Property
     
     [Description("Path to help topic when user clicks on ""Help on this function"" on Excel's Function Wizard")]
-    ' Excel supports two forms: 
-    ' [local file path to .chm file]![HelpContextID]
-    ' [https://address/path_to_file_in_site]!0
+    ' Excel supports two forms - 1) either a url or 2) an entry point into a local .chm file: 
+    ' The later should look like this: [local path to .chm file]![Numeric HelpContextID]
     Public Property Let HelpTopic(ByVal v As String)
         mHelpTopic = v
     End Property
@@ -280,7 +279,16 @@ Public Class UDF
         End If
         
         def(7) = GetXLString12(Me.ShortcutText)
+        
+        If Me.HelpTopic Like "http*" Then
+            ' Url form
+            If Not Me.HelpTopic Like "*!0" Then
+                Me.HelpTopic = Me.HelpTopic & "!0"
+            End If
+        End If
         def(8) = GetXLString12(Me.HelpTopic)
+        
+        
         def(9) = GetXLString12(Me.FuncHelp)
         
         ' Handle argument help text entries - one for each argument
