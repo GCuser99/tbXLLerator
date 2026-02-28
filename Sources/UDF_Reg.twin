@@ -172,7 +172,10 @@ Public Class UDF
         ShortcutText = mShortcutText
     End Property
     
-    [Description("Legacy help topic; ignored by modern Excel but must be supplied for compatibility.")]
+    [Description("Path to help topic when user clicks on ""Help on this function"" on Excel's Function Wizard")]
+    ' Excel supports two forms: 
+    ' [local file path to .chm file]![HelpContextID]
+    ' [https://address/path_to_file_in_site]!0
     Public Property Let HelpTopic(ByVal v As String)
         mHelpTopic = v
     End Property

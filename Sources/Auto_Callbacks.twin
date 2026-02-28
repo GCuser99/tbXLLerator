@@ -16,9 +16,10 @@ Module Auto_Callbacks
             .ProcName = "TBXLL_Multiply"
             .FuncText = "TBXLL_Multiply"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: btNumber binding, scalar return"
+            .FuncHelp = "Demo: btNumber binding, scalar return, help topic via registration"
             .Volatile = False
             .ThreadSafe = True
+            .HelpTopic = "https://learn.microsoft.com/en-us/office/client-developer/excel/xlfregister-form-1#parameters!0"
             .AddArgument Name:="Num1", Help:="First number"
             .AddArgument Name:="Num2", Help:="Second number"
             .Register
