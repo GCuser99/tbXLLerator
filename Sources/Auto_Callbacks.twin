@@ -33,8 +33,8 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: btNumber binding, scalar return with coerced input XLOPER12 arguments"
             .Volatile = False
             .ThreadSafe = True
-            .AddArgument Name:="Num1", Help:="First number", Type:=dt_XLOPER12_Coerced
-            .AddArgument Name:="Num2", Help:="Second number", Type:=dt_XLOPER12_Coerced
+            .AddArgument Name:="Num1", Help:="First number", Type:=rdtXLOPER12Q
+            .AddArgument Name:="Num2", Help:="Second number", Type:=rdtXLOPER12Q
             .Register
         End With
         udfs.Add udf
@@ -428,7 +428,7 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: fast, multi-threaded execution with coreced input arg"
             .Volatile = False
             .ThreadSafe = True
-            .AddArgument Name:="number", Help:="range", type:=dt_XLOPER12_Coerced
+            .AddArgument Name:="number", Help:="range", type:=rdtXLOPER12Q
             .Register
         End With
         udfs.Add udf
@@ -608,12 +608,12 @@ Module Auto_Callbacks
         Return VarPtr(xResult)
     End Function
     
-    ' This is not implemented yet
     Public Function xlAutoRegister12(ByRef pxName As XLOPER12) As LongPtr
         ' xlAutoRegister12 is NOT implemented.
         ' It is only called by Excel when xlfRegister is invoked with type-text missing (def(2) = GetXLMissing12())
         ' for two-phase "lazy" registration. Since we fully register all UDFs in xlAutoOpen,
-        ' this callback is not needed. Tested and confirmed working in Excel 365.
+        ' this callback is not needed. 
+        ' Tested and confirmed that it gets called on missing type-text in Excel 365.
         Static xResult As XLOPER12
         Dim name As String
         name = Xloper12StrValue(pxName)

@@ -49,7 +49,7 @@ Public Class UDF
     Private mVolatile As Boolean
     Private mThreadSafe As Boolean
     Private mMacroEquivalent As Boolean
-    Private mReturnType As DataTypes
+    Private mReturnType As RegDataTypes
     Private oArguments As Collection
     ' def() must persist for the lifetime of the registration (Excel retains pointers)
     Private def() As XLOPER12
@@ -84,19 +84,19 @@ Public Class UDF
         mtCommand = 2
     End Enum
     
-    Public Enum DataTypes
-        dt_XLOPER12 'U
-        dt_XLOPER12_Async 'X -Return type only
-        dt_XLOPER12_Coerced 'Q
-        dt_FP12
-        dt_Boolean_ByVal
-        dt_Boolean_ByRef
-        dt_Double_ByVal
-        dt_Double_ByRef
-        dt_Long_ByVal
-        dt_Long_ByRef
-        dt_String
-        dt_StringLen
+    Public Enum RegDataTypes
+        rdtXLOPER12U
+        rdtXLOPER12X '<-- UDF return type only
+        rdtXLOPER12Q
+        rdtFP12
+        rdtBoolean_ByVal
+        rdtBoolean_ByRef
+        rdtDouble_ByVal
+        rdtDouble_ByRef
+        rdtLong_ByVal
+        rdtLong_ByRef
+        rdtString
+        rdtStringLen
     End Enum
 
     [Description("The symbol exported from your DLL/XLL - must match the name of the DLL procedure that Excel will call.")]
@@ -189,10 +189,10 @@ Public Class UDF
     End Property
     
     [Description("Determines under which built-in Function Wizard category to place the UDF.")]
-    Public Property Let ReturnType(ByVal v As DataTypes)
+    Public Property Let ReturnType(ByVal v As RegDataTypes)
         mReturnType = v
     End Property
-    Public Property Get ReturnType() As DataTypes
+    Public Property Get ReturnType() As RegDataTypes
         ReturnType = mReturnType
     End Property
     
@@ -202,7 +202,7 @@ Public Class UDF
     End Function
     
     [Description("Adds a new argument definition (name + help text) to the UDF.")]
-    Public Function AddArgument(Optional ByVal name As String, Optional ByVal help As String, Optional ByVal type As DataTypes = dt_XLOPER12) As Argument
+    Public Function AddArgument(Optional ByVal name As String, Optional ByVal help As String, Optional ByVal type As RegDataTypes = rdtXLOPER12U) As Argument
         Dim arg As New Argument
         arg.Name = name
         arg.Help = help
@@ -269,8 +269,7 @@ Public Class UDF
         ' Define function type
         def(5) = GetXLNum12(Me.MacroType)
 
-        
-        ' If CategoryCustom and CategoryBuiltin are omitted then User-Defined category is assumed
+        ' If Category and CategoryExcel are omitted then User-Defined category is assumed
         If Me.Category <> vbNullString Then
             def(6) = GetXLString12(Me.Category)
         Else
@@ -347,31 +346,31 @@ Public Class UDF
         Next i
     End Sub
     
-    Private Function TypeEnumToString(e As Long) As String
-        Select Case e
-            Case dt_XLOPER12
+    Private Function TypeEnumToString(eVal As Long) As String
+        Select Case eVal
+            Case rdtXLOPER12U
                 TypeEnumToString = "U"
-            Case dt_XLOPER12_Coerced
+            Case rdtXLOPER12Q
                 TypeEnumToString = "Q"
-            Case dt_XLOPER12_Async
+            Case rdtXLOPER12X
                 TypeEnumToString = "X"
-            Case dt_FP12
+            Case rdtFP12
                 TypeEnumToString = "K%"
-            Case dt_Boolean_ByVal
+            Case rdtBoolean_ByVal
                 TypeEnumToString = "A"
-            Case dt_Boolean_ByRef
+            Case rdtBoolean_ByRef
                 TypeEnumToString = "L"
-            Case dt_Double_ByVal
+            Case rdtDouble_ByVal
                 TypeEnumToString = "B"
-            Case dt_Double_ByRef
+            Case rdtDouble_ByRef
                 TypeEnumToString = "E"
-            Case dt_Long_ByVal
+            Case rdtLong_ByVal
                 TypeEnumToString = "J"
-            Case dt_Long_ByRef
+            Case rdtLong_ByRef
                 TypeEnumToString = "N"
-            Case dt_String
+            Case rdtString
                 TypeEnumToString = "C%"
-            Case dt_StringLen
+            Case rdtStringLen
                 TypeEnumToString = "D%"
             Case Else
         End Select
@@ -387,7 +386,7 @@ End Class
 Public Class Argument
     Private mName As String
     Private mHelp As String
-    Private mType As DataTypes
+    Private mType As RegDataTypes
 
     [Description("The argument name shown in Excel’s Function Wizard and formula tooltips.")]
     Public Property Let Name(ByVal v As String)
@@ -406,15 +405,15 @@ Public Class Argument
     End Property
     
     [Description("The type of argument - defaults to at_XLOPER12.")]
-    Public Property Let Type(ByVal v As DataTypes)
+    Public Property Let Type(ByVal v As RegDataTypes)
         mType = v
     End Property
-    Public Property Get Type() As DataTypes
+    Public Property Get Type() As RegDataTypes
         Type = mType
     End Property
     
     Private Sub Class_Initialize()
-        mType = dt_XLOPER12
+        mType = rdtXLOPER12U
     End Sub
 
 End Class
