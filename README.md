@@ -331,7 +331,8 @@ End Function
 
 ### To use as a starting point for your own XLL
 
-- Copy the `Helpers` module and `UDF` class into your own twinBASIC project
+- Copy the `Helpers`, `Auto_Callbacks`, and `UDF_Reg` files into your own Standard DLL twinBASIC project
+- Under Project -> Project Settings -> Build Output Path, type ${SourcePath}\${Architecture}\${ProjectName}.xll
 - Add your UDF functions following the patterns in the `Demos` module
 - Register each UDF in `xlAutoOpen` using the `UDF` class
 - Unregister in `xlAutoClose` by iterating the `udfs` collection
