@@ -14,7 +14,7 @@ This framework wraps the very excellent [ExcelSDK](https://github.com/fafalone/T
 
 ## Why?
 
-My goal in writing this wrapper was to be able to easily design and use high-performance UDF's for large and complex spreadsheet models in a language that I am familiar with - [twinBASIC](https://twinbasic.com). Specifically, I'm using UDFs in spreadsheet models along with the [SolverWrapper](https://github.com/GCuser99/SolverWrapper) for model parameter optimization, which requires very fast worksheet execution.
+My goal in writing this wrapper was to be able to easily design and use high-performance UDF's for large and complex spreadsheet models in a language that I am familiar with - [twinBASIC](https://twinbasic.com). More specifically, I'm using UDFs in spreadsheet models along with the [SolverWrapper](https://github.com/GCuser99/SolverWrapper) for model parameter optimization, which requires very fast worksheet execution.
 
 ---
 
