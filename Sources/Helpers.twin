@@ -786,5 +786,24 @@ Module Helpers
         CopyMemory outElem, ByVal lpArray, LenB(outElem)
         ExtractFirstElement = True
     End Function
+    
+    Public Function ReadFP12(ByVal lpFP12 As LongPtr, _
+        ByRef outRows As Long, ByRef outCols As Long, _
+        ByRef outArr() As Double) As Boolean
+    
+        If lpFP12 = 0 Then Exit Function
+    
+        CopyMemory outRows, ByVal lpFP12, 4
+        CopyMemory outCols, ByVal lpFP12 + 4, 4
+    
+        Dim count As Long
+        count = outRows * outCols
+        If count = 0 Then Exit Function
+    
+        ReDim outArr(0 To outRows - 1, 0 To outCols - 1)
+        CopyMemory outArr(0, 0), ByVal lpFP12 + 8, count * 8
+    
+        ReadFP12 = True
+    End Function
        
 End Module

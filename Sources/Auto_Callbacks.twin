@@ -19,7 +19,7 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: btNumber binding, scalar return, help topic via registration"
             .Volatile = False
             .ThreadSafe = True
-            .HelpTopic = "https://learn.microsoft.com/en-us/office/client-developer/excel/xlfregister-form-1#parameters"
+            .HelpTopic = "https://github.com/GCuser99/tbXLLerator"
             .AddArgument Name:="Num1", Help:="First number"
             .AddArgument Name:="Num2", Help:="Second number"
             .Register
@@ -36,6 +36,21 @@ Module Auto_Callbacks
             .ThreadSafe = True
             .AddArgument Name:="Num1", Help:="First number", Type:=rdtXLOPER12Q
             .AddArgument Name:="Num2", Help:="Second number", Type:=rdtXLOPER12Q
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_MultiplyB"
+            .FuncText = "TBXLL_MultiplyB"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: btNumber binding, scalar return with coerced input XLOPER12 arguments"
+            .Volatile = False
+            .ThreadSafe = True
+            .ReturnType = rdtDouble
+            .AddArgument Name:="Num1", Help:="First number", Type:=rdtDouble
+            .AddArgument Name:="Num2", Help:="Second number", Type:=rdtDouble
             .Register
         End With
         udfs.Add udf
@@ -500,6 +515,20 @@ Module Auto_Callbacks
             .Register
         End With
         udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SumFP12"
+            .FuncText = "TBXLL_SumFP12"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "FP12 type input argument"
+            .Volatile = False
+            .ThreadSafe = True
+            .AddArgument Name:="range", Help:="range", type:=rdtFP12
+            .Register
+        End With
+        udfs.Add udf
+    
 
         xlAutoOpen = 1
     End Function

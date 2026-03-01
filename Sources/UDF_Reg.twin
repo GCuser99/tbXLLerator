@@ -86,15 +86,12 @@ Public Class UDF
     
     Public Enum RegDataTypes
         rdtXLOPER12U
-        rdtXLOPER12X '<-- UDF return type only
+        rdtXLOPER12X '<-- for asynchronous UDF - return type only, not tested
         rdtXLOPER12Q
-        rdtFP12
-        rdtBoolean_ByVal
-        rdtBoolean_ByRef
-        rdtDouble_ByVal
-        rdtDouble_ByRef
-        rdtLong_ByVal
-        rdtLong_ByRef
+        rdtFP12 '<-- array - advanced performance option for numeric-only array functions
+        rdtBoolean
+        rdtDouble
+        rdtLong
         rdtString
         rdtStringLen
     End Enum
@@ -216,7 +213,6 @@ Public Class UDF
     [Description("Registers the UDF for use as a worksheet function.")]
     Public Sub Register()
         Dim xDll(0) As XLOPER12
-        Dim dummy(0) As XLOPER12
         Dim numFixed As Long = 10
         Dim numArgs As Long
         Dim i As Long
@@ -233,7 +229,7 @@ Public Class UDF
         End If
         
         ' Get this XLL's name (DO NOT xlFree this)
-        Excel12v xlGetName, xDll(0), 0, dummy
+        Excel12v xlGetName, xDll(0)
 
         numArgs = Me.Arguments.Count
 
@@ -281,7 +277,7 @@ Public Class UDF
         def(7) = GetXLString12(Me.ShortcutText)
         
         If Me.HelpTopic Like "http*" Then
-            ' Url form
+            ' Url form - check for required suffix
             If Not Me.HelpTopic Like "*!0" Then
                 Me.HelpTopic = Me.HelpTopic & "!0"
             End If
@@ -309,7 +305,7 @@ Public Class UDF
         
         If Not mRegistered Then Exit Sub
         ' Get this XLL's name (DO NOT xlFree this)
-        Excel12v xlGetName, xDll(0), 0
+        Excel12v xlGetName, xDll(0)
 
         ' Unregister visible UDFs
         Dim xOpers(1) As XLOPER12
@@ -367,18 +363,12 @@ Public Class UDF
                 TypeEnumToString = "X"
             Case rdtFP12
                 TypeEnumToString = "K%"
-            Case rdtBoolean_ByVal
+            Case rdtBoolean
                 TypeEnumToString = "A"
-            Case rdtBoolean_ByRef
-                TypeEnumToString = "L"
-            Case rdtDouble_ByVal
+            Case rdtDouble
                 TypeEnumToString = "B"
-            Case rdtDouble_ByRef
-                TypeEnumToString = "E"
-            Case rdtLong_ByVal
+            Case rdtLong
                 TypeEnumToString = "J"
-            Case rdtLong_ByRef
-                TypeEnumToString = "N"
             Case rdtString
                 TypeEnumToString = "C%"
             Case rdtStringLen

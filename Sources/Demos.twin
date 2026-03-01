@@ -802,7 +802,7 @@ Module Demos
     [DllExport]
     Public Function TBXLL_Now() As LongPtr
         Dim xTemp As XLOPER12
-        If Excel12v(xlfNow, xTemp, 0) <> 0 Then
+        If Excel12v(xlfNow, xTemp) <> 0 Then
             SetErrorResult xTemp
         End If
         Return AllocResultToCaller(xTemp)
@@ -865,6 +865,36 @@ Module Demos
         If Not BindQ(pB, btNumber, b, xTemp) Then GoTo ReturnResult
 
         xTemp = GetXLNum12(a * b)
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    ' Type string: registrating input arguments as type B  - returns Double, takes two Double args
+    [DllExport]
+    Public Function TBXLL_MultiplyB(ByVal a As Double, ByVal b As Double) As Double
+        Return a * b
+    End Function
+    
+    [DllExport]
+    Public Function TBXLL_SumFP12(ByVal lpFP12 As LongPtr) As LongPtr
+        Dim xTemp As XLOPER12
+        Dim rows As Long, cols As Long
+        Dim arr() As Double
+    
+        If Not ReadFP12(lpFP12, rows, cols, arr) Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+    
+        Dim total As Double
+        Dim r As Long, c As Long
+        For r = 0 To rows - 1
+            For c = 0 To cols - 1
+                total = total + arr(r, c)
+            Next c
+        Next r
+    
+        xTemp = GetXLNum12(total)
     ReturnResult:
         Return AllocResultToCaller(xTemp)
     End Function
