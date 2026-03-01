@@ -125,7 +125,7 @@ End Function
 
 ## Argument Binding
 
-`BindU()` is the unified entry point for all UDF argument type coercion:
+`BindU()` is the unified entry point for all XLOPER12 (U) UDF argument type coercion:
 ```vba
 Public Function BindU( _
     ByRef pIn As XLOPER12, _
