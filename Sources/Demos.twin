@@ -2,7 +2,7 @@
 'Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
 'Copyright (c) 2026 GCUser99 (Michael Waite)
 
-[Description("This Module contains UDF callbacks")]
+[Description("This Module contains UDF callbacks demonstrating framework capabilities.")]
 Module Demos
 
     ' Demonstrates: AllocResultToCaller pattern for thread-safe UDFs, GoTo ReturnResult for clean error paths
@@ -802,7 +802,7 @@ Module Demos
     [DllExport]
     Public Function TBXLL_Now() As LongPtr
         Dim xTemp As XLOPER12
-        If Excel12v(xlfNow, xTemp) <> 0 Then
+        If Excel12v(xlfNow, xTemp, 0) <> 0 Then
             SetErrorResult xTemp
         End If
         Return AllocResultToCaller(xTemp)

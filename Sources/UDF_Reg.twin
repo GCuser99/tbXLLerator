@@ -229,7 +229,7 @@ Public Class UDF
         End If
         
         ' Get this XLL's name (DO NOT xlFree this)
-        Excel12v xlGetName, xDll(0)
+        Excel12v xlGetName, xDll(0), 0
 
         numArgs = Me.Arguments.Count
 
@@ -305,7 +305,7 @@ Public Class UDF
         
         If Not mRegistered Then Exit Sub
         ' Get this XLL's name (DO NOT xlFree this)
-        Excel12v xlGetName, xDll(0)
+        Excel12v xlGetName, xDll(0), 0
 
         ' Unregister visible UDFs
         Dim xOpers(1) As XLOPER12

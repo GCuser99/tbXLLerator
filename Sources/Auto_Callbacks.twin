@@ -2,7 +2,7 @@
 'Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
 'Copyright (c) 2026 GCUser99 (Michael Waite)
 
-[Description("This Module contains all xlAuto callbacks used for (un)registration")]
+[Description("This Module contains all xlAuto callbacks used for (un)registration and memory cleanup")]
 Module Auto_Callbacks
     
     Private udfs As New Collection
@@ -31,7 +31,7 @@ Module Auto_Callbacks
             .ProcName = "TBXLL_MultiplyQ"
             .FuncText = "TBXLL_MultiplyQ"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: btNumber binding, scalar return with coerced input XLOPER12 arguments"
+            .FuncHelp = "Demo: btNumber binding, scalar return with Excel coerced (type Q) input XLOPER12 arguments"
             .Volatile = False
             .ThreadSafe = True
             .AddArgument Name:="Num1", Help:="First number", Type:=rdtXLOPER12Q
@@ -45,7 +45,7 @@ Module Auto_Callbacks
             .ProcName = "TBXLL_MultiplyB"
             .FuncText = "TBXLL_MultiplyB"
             .Category = "tB XLL UDF Add-In"
-            .FuncHelp = "Demo: btNumber binding, scalar return with coerced input XLOPER12 arguments"
+            .FuncHelp = "Demo: Double (B) type input and return arguments"
             .Volatile = False
             .ThreadSafe = True
             .ReturnType = rdtDouble
