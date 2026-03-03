@@ -3,7 +3,7 @@
 'Copyright (c) 2026 GCUser99 (Michael Waite)
 
 [Description("This Module contains all xlAuto callbacks used for (un)registration and memory cleanup")]
-Module Auto_Callbacks
+Module AutoCallbacks
     
     Private udfs As New Collection
 
@@ -51,6 +51,20 @@ Module Auto_Callbacks
             .ReturnType = rdtDouble
             .AddArgument Name:="Num1", Help:="First number", Type:=rdtDouble
             .AddArgument Name:="Num2", Help:="Second number", Type:=rdtDouble
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_MultiplyUnsafe"
+            .FuncText = "TBXLL_MultiplyUnsafe"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: Unsafe version of TBXLL_Multiply"
+            .Volatile = False
+            .ThreadSafe = False
+            .AddArgument Name:="Num1", Help:="First number"
+            .AddArgument Name:="Num2", Help:="Second number"
             .Register
         End With
         udfs.Add udf
@@ -186,7 +200,7 @@ Module Auto_Callbacks
             .Volatile = False
             .ThreadSafe = True
             .AddArgument Name:="range", Help:="cells to consider for count"
-            .AddArgument Name:="crteria", Help:="Criteria to filter count data"
+            .AddArgument Name:="criteria", Help:="Criteria to filter count data"
             .Register
         End With
         udfs.Add udf
@@ -405,7 +419,9 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: fast, multi-threaded execution"
             .Volatile = False
             .ThreadSafe = True
-            .AddArgument Name:="number", Help:="range"
+            .AddArgument Name:="num1", Help:="range"
+            .AddArgument Name:="num2", Help:="range"
+            .AddArgument Name:="loops", Help:="number of interations"
             .Register
         End With
         udfs.Add udf
@@ -431,7 +447,9 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: slower, single-threaded execution"
             .Volatile = False
             .ThreadSafe = False
-            .AddArgument Name:="number", Help:="range"
+            .AddArgument Name:="num1", Help:="range"
+            .AddArgument Name:="num2", Help:="range"
+            .AddArgument Name:="loops", Help:="number of interations"
             .Register
         End With
         udfs.Add udf
@@ -444,7 +462,25 @@ Module Auto_Callbacks
             .FuncHelp = "Demo: fast, multi-threaded execution with coreced input arg"
             .Volatile = False
             .ThreadSafe = True
-            .AddArgument Name:="number", Help:="range", type:=rdtXLOPER12Q
+            .AddArgument Name:="num1", Help:="range", type:=rdtXLOPER12Q
+            .AddArgument Name:="num2", Help:="range", type:=rdtXLOPER12Q
+            .AddArgument Name:="loops", Help:="number of interations", type:=rdtXLOPER12Q
+            .Register
+        End With
+        udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_SpeedSafeB"
+            .FuncText = "TBXLL_SpeedSafeB"
+            .Category = "tB XLL UDF Add-In"
+            .FuncHelp = "Demo: fast, multi-threaded execution with Double inputs and outputs"
+            .Volatile = False
+            .ThreadSafe = True
+            .ReturnType = rdtDouble
+            .AddArgument Name:="num1", Help:="range", type:=rdtDouble
+            .AddArgument Name:="num2", Help:="range", type:=rdtDouble
+            .AddArgument Name:="loops", Help:="number of interations", type:=rdtLong
             .Register
         End With
         udfs.Add udf
@@ -574,6 +610,9 @@ Module Auto_Callbacks
     End Function
 
     ' Called by Excel when UDF is finished with an XLOPER12 result that had xlbitDLLFree set
+    ' Supported xltype cleanup: xltypeStr, xltypeMulti (with nested strings), xltypeRef
+    ' Other types (xltypeNum, xltypeBool, xltypeInt, xltypeErr, xltypeNil) have no
+    ' inner allocations — only the outer XLOPER12 struct is freed.
     [DllExport]
     Public Sub xlAutoFree12(ByVal pResult As LongPtr)
         If pResult = 0 Then Exit Sub
@@ -618,6 +657,11 @@ Module Auto_Callbacks
                     ' Free the element array itself
                     GlobalFree lpArray
                 End If
+            Case xltypeRef
+                ' Free the XLMREF12 allocation stored at offset 0
+                Dim lpMref As LongPtr
+                CopyMemory lpMref, ByVal pResult, LenB(Of LongPtr)
+                If lpMref <> 0 Then GlobalFree lpMref
         End Select
 
         ' Free the XLOPER12 struct itself
@@ -629,36 +673,19 @@ Module Auto_Callbacks
     ' actions specific to the user explicitly adding the add-in, as opposed to
     ' it loading automatically on Excel startup.
     [DllExport]
-    Public Function xlAutoAdd() As LongPtr
-        Static xResult As XLOPER12
+    Public Function xlAutoAdd() As Long
         ' Nothing to do - all initialization is handled in xlAutoOpen
         ' Could be used to show a welcome message or first-run configuration dialog
         'MsgBox("hi from xlAutoAdd")
-        xResult.xltype = xltypeNil
-        Return VarPtr(xResult)
+        Return 1
     End Function
     
+    [DllExport]
     Public Function xlAutoRegister12(ByRef pxName As XLOPER12) As LongPtr
-        ' xlAutoRegister12 is NOT implemented.
-        ' It is only called by Excel when xlfRegister is invoked with type-text missing (def(2) = GetXLMissing12())
-        ' for two-phase "lazy" registration. Since we fully register all UDFs in xlAutoOpen,
-        ' this callback is not needed. 
-        ' Tested and confirmed that it gets called on missing type-text in Excel 365.
+        ' Not implemented — all UDFs are fully registered in xlAutoOpen.
+        ' This is only called when xlfRegister is invoked with type-text missing.
+        ' Return xlerrValue so Excel knows we couldn't handle it.
         Static xResult As XLOPER12
-        Dim name As String
-        name = Xloper12StrValue(pxName)
-        'MessageBox 0, name & " called in xlAutoRegister12", "XLL Diagnostic", 0
-        
-        Dim udf As UDF
-        For Each udf In udfs
-            If StrComp(udf.FuncText, name, vbTextCompare) = 0 Then
-                'udf.Register
-                'xResult = GetXLInt12(1)
-                'Return VarPtr(xResult)
-            End If
-        Next udf
-    
-        ' Not found — return xlerrValue so Excel knows we couldn't handle it
         xResult = GetXLErr12(xlerrValue)
         Return VarPtr(xResult)
     End Function

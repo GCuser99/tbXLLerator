@@ -184,9 +184,9 @@ Module Helpers
                 ' and extracts element (0,0). For single cells and literals this
                 ' returns the value directly; for multi-cell ranges it returns
                 ' only the top-left cell value. Use btArray if you need all cells.
-                Dim arrV() As Variant
-                If CoerceToArray(pIn, arrV) Then
-                    outValue = arrV(0, 0)
+                Dim temp() As Variant
+                If CoerceToArray(pIn, temp) Then
+                    outValue = temp(0, 0)
                     BindU = True
                 Else
                     SetErrorResult xResult
@@ -323,9 +323,9 @@ Module Helpers
                 ' Q already coerced ranges to xltypeMulti
                 Select Case pIn.xltype
                     Case xltypeMulti
-                        Dim arrV() As Variant
-                        If CoerceToArray(pIn, arrV) Then
-                            outValue = arrV
+                        Dim arr() As Variant
+                        If CoerceToArray(pIn, arr) Then
+                            outValue = arr
                             BindQ = True
                         Else
                             SetErrorResult xResult
@@ -449,6 +449,8 @@ Module Helpers
                 GetXLVariant12 = GetXLBool12(CBool(v))
             Case vbString
                 GetXLVariant12 = GetXLString12(CStr(v))
+            Case vbDate: 
+                GetXLVariant12 = GetXLNum12(CDbl(v))
             Case vbError
                 GetXLVariant12 = GetXLErr12(CLng(v))
             Case Else
@@ -515,7 +517,7 @@ Module Helpers
                     Exit Function
                 End If
 
-                Excel12v xlFree, ByVal vbNullPtr, 1, xlt
+                'Excel12v xlFree, ByVal vbNullPtr, 1, xlt
                 CoerceToBool = False
                 Exit Function
             Case Else
@@ -557,7 +559,7 @@ Module Helpers
                     Exit Function
                 End If
 
-                Excel12v xlFree, ByVal vbNullPtr, 1, xlt
+                'Excel12v xlFree, ByVal vbNullPtr, 1, xlt
                 CoerceToNumber = False
                 Exit Function
             Case Else
@@ -603,7 +605,7 @@ Module Helpers
                     Exit Function
                 End If
 
-                Excel12v xlFree, ByVal vbNullPtr, 1, xlt
+                'Excel12v xlFree, ByVal vbNullPtr, 1, xlt
                 CoerceToString = False
                 Exit Function
             Case Else
@@ -804,6 +806,26 @@ Module Helpers
         CopyMemory outArr(0, 0), ByVal lpFP12 + 8, count * 8
     
         ReadFP12 = True
+    End Function
+    
+    Public Declare PtrSafe Function lstrlenW Lib "kernel32" (ByVal lpString As LongPtr) As Long
+    
+    Public Function ReadNullTerminatedString(ByVal lpStr As LongPtr) As String
+        ' SysAllocString reads until null terminator
+        Dim length As Long
+        length = lstrlenW(lpStr)
+        If length = 0 Then Exit Function
+        ReadNullTerminatedString = Space$(length)
+        CopyMemory ByVal StrPtr(ReadNullTerminatedString), ByVal lpStr, length * 2
+    End Function
+
+    Public Function ReadCountedString(ByVal lpStr As LongPtr) As String
+        ' First USHORT is the character count
+        Dim charCount As Integer
+        CopyMemory charCount, ByVal lpStr, 2
+        If charCount = 0 Then Exit Function
+        ReadCountedString = Space$(charCount)
+        CopyMemory ByVal StrPtr(ReadCountedString), ByVal lpStr + 2, charCount * 2
     End Function
        
 End Module

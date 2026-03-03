@@ -86,14 +86,14 @@ Public Class UDF
     
     Public Enum RegDataTypes
         rdtXLOPER12U
-        rdtXLOPER12X '<-- for asynchronous UDF - return type only, not tested
+        rdtXLOPER12X    '<-- for asynchronous UDF - return type only, not tested
         rdtXLOPER12Q
-        rdtFP12 '<-- array - advanced performance option for numeric-only array functions
+        rdtFP12         '<-- array - advanced performance option for numeric-only array functions
         rdtBoolean
         rdtDouble
         rdtLong
-        rdtString
-        rdtStringLen
+        rdtString1      '<-- null-terminated Unicode string (C%) - Use rdtXLOPER12U instead
+        rdtString2      '<-- length-counted Unicode string (D%)  - Use rdtXLOPER12U instead
     End Enum
 
     [Description("The symbol exported from your DLL/XLL - must match the name of the DLL procedure that Excel will call.")]
@@ -369,9 +369,9 @@ Public Class UDF
                 TypeEnumToString = "B"
             Case rdtLong
                 TypeEnumToString = "J"
-            Case rdtString
+           Case rdtString1
                 TypeEnumToString = "C%"
-            Case rdtStringLen
+            Case rdtString2
                 TypeEnumToString = "D%"
             Case Else
         End Select
