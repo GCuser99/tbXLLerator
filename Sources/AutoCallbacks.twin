@@ -19,7 +19,7 @@ Module AutoCallbacks
             .FuncHelp = "Demo: btNumber binding, scalar return, help topic via registration"
             .Volatile = False
             .ThreadSafe = True
-            .HelpTopic = "https://github.com/GCuser99/tbXLLerator"
+            .HelpTopic = "https://github.com/GCuser99/tbXLLerator/wiki"
             .AddArgument Name:="Num1", Help:="First number"
             .AddArgument Name:="Num2", Help:="Second number"
             .Register
@@ -570,14 +570,6 @@ Module AutoCallbacks
     End Function
     
     [DllExport]
-    Public Function xlAutoRemove() As Long
-        ' This gets called when unloading the add-in
-        ' Use this to display a custom dialog box that tells the user that the add-in 
-        ' has been deactivated, or to read from or write to the registry.
-        xlAutoRemove = 1
-    End Function
-    
-    [DllExport]
     Public Function xlAutoClose() As Long
         ' Recommended, handles unregistration
         ' This gets called when unloading the add-in (after xlAutoRemove, and when Excel closes)
@@ -676,8 +668,17 @@ Module AutoCallbacks
     Public Function xlAutoAdd() As Long
         ' Nothing to do - all initialization is handled in xlAutoOpen
         ' Could be used to show a welcome message or first-run configuration dialog
-        'MsgBox("hi from xlAutoAdd")
+        MessageBox 0, "tbXLLerator Add-in has been loaded", "tbXLLerator Add-in", 0
         Return 1
+    End Function
+    
+    [DllExport]
+    Public Function xlAutoRemove() As Long
+        ' This gets called when unloading the add-in
+        ' Use this to display a custom dialog box that tells the user that the add-in 
+        ' has been deactivated, or to read from or write to the registry.
+        MessageBox 0, "tbXLLerator Add-in has been removed", "tbXLLerator Add-in", 0
+        xlAutoRemove = 1
     End Function
     
     [DllExport]
