@@ -115,4 +115,4 @@ See the comprehensive [tbXLLerator Wiki](https://github.com/GCuser99/tbXLLerator
 
 ## License
 
-[MIT License](https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file)
+This project is licensed under the [MIT License](https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file).
