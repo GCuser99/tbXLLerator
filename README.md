@@ -109,7 +109,7 @@ End Function
 
 ## More Information?
 
-See the comprehensive [tbXLLerator Wiki](https://github.com/GCuser99/tbXLLerator) for the details.
+See the comprehensive [tbXLLerator Wiki](https://github.com/GCuser99/tbXLLerator/wiki) for the details.
 
 ---
 
