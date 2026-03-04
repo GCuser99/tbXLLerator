@@ -28,6 +28,7 @@ My goal in writing this wrapper was to be able to easily design and use high-per
 - **Structured memory management** — a well-defined pattern with `AllocXLOPER12Result` and `xlAutoFree12`
 - **UDF registration class** — High-level mechanism including `ThreadSafe` and `Volatile` properties and automatic type-text construction
 - **Comprehensive demo module** — 30+ UDFs demonstrating every major pattern
+- **Complete Wiki Documentation** — See the tBXLLerator [Wiki](https://github.com/GCuser99/tbXLLerator/Wiki) for help on understanding and writing your first XLL UDF.
 
 ---
 
