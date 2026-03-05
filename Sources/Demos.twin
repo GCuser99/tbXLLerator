@@ -1,6 +1,6 @@
-'From: https://github.com/GCuser99/tbXLLerator
-'Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
-'Copyright (c) 2026 GCUser99 (Michael Waite)
+' From: https://github.com/GCuser99/tbXLLerator
+' Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
+' Copyright (c) 2026 GCUser99 (Michael Waite)
 
 [Description("This Module contains UDF callbacks demonstrating framework capabilities.")]
 Module Demos
@@ -955,6 +955,26 @@ Module Demos
         s = ReadCountedString(lpStr)
     
         xTemp = GetXLString12(UCase$(s))
+    ReturnResult:
+        Return AllocResultToCaller(xTemp)
+    End Function
+    
+    [DllExport]
+    Public Function TBXLL_WhereAmI() As LongPtr
+        Dim xTemp As XLOPER12
+        Dim xCaller(0) As XLOPER12
+
+        If Excel12v(xlfCaller, xCaller(0), 0) <> 0 Then
+            SetErrorResult xTemp
+            GoTo ReturnResult
+        End If
+
+        Dim rc As Variant
+        If Not BindU(xCaller(0), btSingleCellRef, rc, xTemp) Then GoTo ReturnResult
+
+        ' rc(0) = row (1-based), rc(1) = column (1-based)
+        xTemp = GetXLString12("Row " & rc(0) & ", Col " & rc(1))
+
     ReturnResult:
         Return AllocResultToCaller(xTemp)
     End Function

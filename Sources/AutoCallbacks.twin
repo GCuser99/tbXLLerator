@@ -1,6 +1,6 @@
-'From: https://github.com/GCuser99/tbXLLerator
-'Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
-'Copyright (c) 2026 GCUser99 (Michael Waite)
+' From: https://github.com/GCuser99/tbXLLerator
+' Distrubuted under MIT License: https://github.com/GCuser99/tbXLLerator?tab=MIT-1-ov-file
+' Copyright (c) 2026 GCUser99 (Michael Waite)
 
 [Description("This Module contains all xlAuto callbacks used for (un)registration and memory cleanup")]
 Module AutoCallbacks
@@ -564,9 +564,20 @@ Module AutoCallbacks
             .Register
         End With
         udfs.Add udf
+        
+        Set udf = New UDF
+        With udf
+            .ProcName = "TBXLL_WhereAmI"
+            '.FuncText = "TBXLL_WhereAmI"
+            .FuncHelp = "Returns the calling cell's location"
+            .Category = "tB XLL UDF Add-In"
+            .ThreadSafe = False
+            .MacroEquivalent = True
+            .Register
+        End With
+        udfs.Add udf
     
-
-        xlAutoOpen = 1
+        Return 1
     End Function
     
     [DllExport]
@@ -577,7 +588,7 @@ Module AutoCallbacks
         For Each udf In udfs
             udf.UnRegister
         Next udf
-        xlAutoClose = 1
+        Return 1
     End Function
     
     [DllExport]
@@ -592,6 +603,7 @@ Module AutoCallbacks
         Dim w As Long
         CopyMemory w, xIntAction(0).val(0), LenB(w)
         If w = 1 Then
+            ' Excel is asking for long name (1)
             xInfo(0) = GetXLString12(addinLongName)
         Else
             xInfo(0).xltype = xltypeErr
@@ -678,7 +690,7 @@ Module AutoCallbacks
         ' Use this to display a custom dialog box that tells the user that the add-in 
         ' has been deactivated, or to read from or write to the registry.
         MessageBox 0, "tbXLLerator Add-in has been removed", "tbXLLerator Add-in", 0
-        xlAutoRemove = 1
+        Return 1
     End Function
     
     [DllExport]
@@ -690,6 +702,5 @@ Module AutoCallbacks
         xResult = GetXLErr12(xlerrValue)
         Return VarPtr(xResult)
     End Function
-
 
 End Module
