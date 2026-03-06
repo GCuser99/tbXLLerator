@@ -11,6 +11,7 @@ Module AutoCallbacks
     Public Function xlAutoOpen() As Long
         ' Required, handles registration
         Dim udf As UDF
+        
         Set udf = New UDF
         With udf
             .ProcName = "TBXLL_Multiply"
@@ -576,7 +577,7 @@ Module AutoCallbacks
             .Register
         End With
         udfs.Add udf
-    
+        
         Return 1
     End Function
     

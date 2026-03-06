@@ -826,5 +826,27 @@ Module Helpers
         ReadCountedString = Space$(charCount)
         CopyMemory ByVal StrPtr(ReadCountedString), ByVal lpStr + 2, charCount * 2
     End Function
+    
+    Public Function GetRangeOrigin( _
+        ByRef pIn As XLOPER12, _
+        ByRef outRow As Long, _
+        ByRef outCol As Long) As Boolean
+        Dim sref As XLREF12
+
+        If pIn.xltype = xltypeSRef Then
+            CopyMemory sref, ByVal VarPtr(pIn.val(0)) + 4, LenB(sref)
+            outRow = sref.rwFirst + 1   ' 1-based
+            outCol = sref.colFirst + 1  ' 1-based
+            GetRangeOrigin = True
+        ElseIf pIn.xltype = xltypeRef Then
+            Dim lpMref As LongPtr
+            CopyMemory lpMref, ByVal VarPtr(pIn.val(0)), LenB(Of LongPtr)
+            If lpMref = 0 Then Exit Function
+            CopyMemory sref, ByVal lpMref + 4, LenB(sref)
+            outRow = sref.rwFirst + 1
+            outCol = sref.colFirst + 1
+            GetRangeOrigin = True
+        End If
+    End Function
        
 End Module

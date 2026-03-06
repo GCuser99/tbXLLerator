@@ -222,7 +222,10 @@ Public Class UDF
         
         ' First some compatibility checks...
         ' Handle mutually exclusive options
-        If Me.MacroEquivalent Then Me.ThreadSafe = False
+        If Me.MacroEquivalent And Me.ThreadSafe Then
+            Debug.Print "Warning while registering " & Me.ProcName & " - setting .MacroEquivalent = True with .ThreadSafe = True is not allowed. ThreadSafe has been turned off."
+            Me.ThreadSafe = False
+        End If
         ' Make sure that both Me.ProcName and Me.FuncText are defined
         If Me.ProcName = vbNullString And Me.FuncText <> vbNullString Then
             Me.ProcName = Me.FuncText
@@ -256,13 +259,20 @@ Public Class UDF
         
         def(3) = GetXLString12(Me.FuncText)
         
-        ' Build comma-separated argument name list
+        ' Build comma-separated argument name list - must be <= 255 chars!
+        ' Exceeding this causes silent registration failure in Excel 2010+.
+        ' After truncation, the function will still work, however the truncated argument names
+        ' will not show up in the function wizard
         txt = ""
         If numArgs > 0 Then
             txt = Me.Arguments.Item(1).Name
             For i = 2 To numArgs
                 txt = txt & "," & Me.Arguments.Item(i).Name
             Next i
+        End If
+        If Len(txt) > 255 Then
+            Debug.Print "Warning while registering " & Me.ProcName & " - the argument names text exceeds 255 character limit by " & Len(txt) - 255 & ". The string has been truncated to allow registration."
+            txt = Left$(txt, 255)
         End If
         def(4) = GetXLString12(txt) ' Argument text
         
@@ -285,7 +295,6 @@ Public Class UDF
             End If
         End If
         def(8) = GetXLString12(Me.HelpTopic)
-        
         
         def(9) = GetXLString12(Me.FuncHelp)
         
